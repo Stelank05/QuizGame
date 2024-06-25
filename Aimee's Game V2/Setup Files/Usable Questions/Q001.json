@@ -1,0 +1,44 @@
+{
+    "Question ID" : "Q001",
+    "Question Difficulty" : "Easy",
+
+    "Question" : "Who is Aimee?",
+
+    "Answers" : 
+    [
+        {
+            "Answer Text" : "Yes",
+            "Answer Back Colour" : "Dark Blue",
+            "Answer Text Colour" : "White",
+            "Correct Answer" : false,
+            "Answer Index" : 1
+        },
+        {
+            "Answer Text" : "No",
+            "Answer Back Colour" : "Dark Blue",
+            "Answer Text Colour" : "White",
+            "Correct Answer" : false,
+            "Answer Index" : 2
+        },
+        {
+            "Answer Text" : "Maybe",
+            "Answer Back Colour" : "Dark Blue",
+            "Answer Text Colour" : "White",
+            "Correct Answer" : false,
+            "Answer Index" : 3
+        },
+        {
+            "Answer Text" : "*sticks tongue out*",
+            "Answer Back Colour" : "Dark Blue",
+            "Answer Text Colour" : "White",
+            "Correct Answer" : true,
+            "Answer Index" : 4
+        }
+    ],
+
+    "Fun Fact" : "Very Professional",
+    "Hint" : "Professionally",
+
+    "Correct Audio" : "Piano",
+    "Incorrect Audio" : "Incorrect"
+}

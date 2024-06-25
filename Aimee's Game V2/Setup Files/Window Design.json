@@ -1,0 +1,136 @@
+[
+    {
+        "Default Window Background" : "Light Grey",
+        "Default Window Foreground" : "Black",
+        "Default Label Background" : "Black",
+        "Default Label Foreground" : "White",
+        "Default Button Background" : "Grey",
+        "Default Button Foreground" : "White",
+        "Default Entry Background" : "Grey",
+        "Default Entry Foreground" : "White",
+
+        "Minimum Contrast Ratio" : 4.5,
+
+        "Main Font" : ["Calibri", 10],
+        "Spacer Size" : 5,
+
+        "Correct Answer Back Colour" : "Green",
+        "Correct Answer Text Colour" : "Black",
+        "Incorrect Answer Back Colour" : "Red",
+        "Incorrect Answer Text Colour" : "Black",
+        "Double Wrong Answer Back Colour" : "Purple",
+        "Double Wrong Answer Text Colour" : "Black",
+
+        "Login Page Sizes" :
+        [
+            {
+                "Widget Width" : 150,
+                "Widget Height" : 25
+            }
+        ],
+
+        "Create Account Page Sizes":
+        [
+            {
+                "Small Widget Width" : 150,
+                "Small Widget Height" : 25,
+                "Large Widget Height" : 40
+            }
+        ],
+
+        "Choose Colours Page Sizes":
+        [
+            {
+                "Small Widget Width" : 150,
+                "Small Widget Height" : 25,
+                "Large Widget Height" : 40
+            }
+        ],
+
+        "User Home Page Sizes":
+        [
+            {
+                "Small Widget Width" : 150,
+                "Small Widget Height" : 25,
+                "Large Widget Height" : 40
+            }
+        ],
+
+        "Colour Editor Page Sizes":
+        [
+            {
+                "Small Widget Width" : 150,
+                "Small Widget Height" : 25,
+                "Large Widget Height" : 60,
+                "Listbox Item Height" : 16.33,
+                "Listbox Visible Items" : 10
+            }
+        ],
+
+        "View Account Page Sizes":
+        [
+            {
+                "Small Widget Width" : 150,
+                "Small Widget Height" : 25,
+                "Listbox Item Height" : 16.33,
+                "Listbox Visible Items" : 8
+            }
+        ],
+
+        "Audio Editor Page Sizes":
+        [
+            {
+                "Small Widget Width" : 150,
+                "Small Widget Height" : 25,
+                "Listbox Item Height" : 16.33,
+                "Listbox Visible Items" : 8
+            }
+        ],
+
+        "Question List Page Sizes":
+        [
+            {
+                "Small Widget Width" : 150,
+                "Button Widget Width" : 180,
+                "Small Widget Height" : 25
+            }
+        ],
+
+        "Question Editor Page Sizes":
+        [
+            {
+                "Small Widget Width" : 150,
+                "Small Widget Height" : 25,
+                "Large Widget Height" : 40
+            }
+        ],
+
+        "Choose Answer Colours Page Sizes":
+        [
+            {
+                "Small Widget Width" : 150,
+                "Small Widget Height" : 25,
+                "Large Widget Height" : 40
+            }
+        ],
+
+        "Setup Quiz Page Sizes":
+        [
+            {
+                "Small Widget Width" : 150,
+                "Small Widget Height" : 25,
+                "Large Widget Height" : 40
+            }
+        ],
+
+        "Question Page Sizes":
+        [
+            {
+                "Widget Width" : 150,
+                "Widget Difficulty Width" : 60,
+                "Small Widget Height" : 25,
+                "Large Widget Height" : 40
+            }
+        ]
+    }
+]

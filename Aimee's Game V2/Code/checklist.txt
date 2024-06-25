@@ -1,0 +1,19 @@
+checklist:
+- question list sorting 🟢
+    - for after discarding and reinstatement of questions, the order would be mixed up,
+      not useful for finding next usable key, needs lists sorted
+- discarding questions 🟢
+- reinstating questions 🟢
+- question viewing:
+    - preview
+        - buttons dont have function
+        - highlight correct answer somehow (either make green or separate label at the bottom stating the correct option)
+    - quiz
+        - buttons have function
+            - selects chosen answer
+        - ability to review previous questions, chosen answers + correct answer
+        - answer order randomised (order held for already done questions,
+          maybe make each question its own class that each question holds)
+- play quiz
+    - select difficulty option + length
+        - length cant exceed number of usable questions
