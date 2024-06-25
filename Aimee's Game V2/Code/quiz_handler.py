@@ -1,10 +1,8 @@
-import numpy
 import random
 
 from tkinter import *
 from tkinter import messagebox
 
-from answer import answer
 from common_data import common_data
 from question import question
 
@@ -90,6 +88,10 @@ class quiz_handler:
 
 
     def get_questions() -> list[question]:
+        for question_option in common_data.usable_question_list:
+            question_option.question_answered = False
+            question_option.selected_answers.clear()
+
         if quiz_handler.quiz_difficulty == "Mixed":
             return quiz_handler.randomise_questions(common_data.usable_question_list, 3)
 
@@ -103,17 +105,14 @@ class quiz_handler:
     
     def randomise_questions(question_list, times) -> list[question]:
         full_question_list: list[question] = question_list
+        
         for i in range(times):
             indexes: list[int] = list(range(len(full_question_list)))
-
-            #print(indexes)
 
             for this_question in full_question_list:
                 index: int = random.randint(1, len(indexes)) - 1
                 new_index: int = indexes[index]
                 indexes.remove(new_index)
-
-                #print(f"{index} -> {new_index}")
 
                 this_question.question_index = new_index
 

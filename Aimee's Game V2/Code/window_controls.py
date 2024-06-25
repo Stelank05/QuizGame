@@ -1426,15 +1426,14 @@ class window_controls:
             window_controls.display_question_controller(1)
         else:
             messagebox.showwarning("Items not Selected", "Please Select a Quiz Difficulty and/or Quiz Length to Continue")
-            invasion_frame: Toplevel = Toplevel(window_controls.window)
-            invasion_frame.withdraw()
-            invade_poland(invasion_frame)
+            #invasion_frame: Toplevel = Toplevel(window_controls.window)
+            #invasion_frame.withdraw()
+            #invade_poland(invasion_frame)
 
 
     # Complete Quiz Functions
 
     def display_question_controller(question_number: int) -> None:
-        #print(f"{question_number} - {quiz_handler.question_number}")
         #window_controls.setup_quiz_page.deiconify()
 
         window_controls.attempts_at_question = 0
@@ -1471,7 +1470,7 @@ class window_controls:
 
     def make_review_question_page(question_number: int) -> None:
         window_controls.main_quiz_page = window_controls.make_question_page_template(question_number)
-        window_controls.main_quiz_page.geometry(window_controls.calculate_review_question_dimensions())
+        window_controls.main_quiz_page.geometry(window_controls.calculate_view_question_dimensions())
 
         window_controls.main_quiz_page.update()
         window_controls.main_quiz_page.deiconify()
@@ -1487,10 +1486,13 @@ class window_controls:
         window_controls.select_answer_button = Button(window_controls.main_quiz_page, text = "Next Question", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = functools.partial(window_controls.display_question_controller, question_number + 1))
         window_controls.select_answer_button.place(x = (2 * window_design.spacer), y = start_height, width = (2 * (window_design.spacer + width)), height = small_height)
 
-        start_height += (window_design.spacer + small_height)
-
         if question_number != quiz_handler.question_number - 1:
-            pass
+            window_controls.select_answer_button.place(x = (4 * window_design.spacer) + width, width = width)
+
+            jump_to_current_question: Button = Button(window_controls.main_quiz_page, text = "Go To Current Question", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = functools.partial(window_controls.display_question_controller, quiz_handler.question_number))
+            jump_to_current_question.place(x = (2 * window_design.spacer), y = start_height, width = width, height = small_height)
+            
+        start_height += (window_design.spacer + small_height)
 
         # Back + Exit Button Layout (Probably Send to Function so Review Page can also use)
         window_controls.bottom_row_buttons(question_number, start_height)
@@ -1510,7 +1512,6 @@ class window_controls:
 
             window_controls.quiz_exit_button = Button(window_controls.main_quiz_page, text = "Exit", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.kill_program)
             window_controls.quiz_exit_button.place(x = (4 * window_design.spacer) + width, y = start_height, width = width, height = height)
-
 
     def make_question_page_template(question_number: int) -> Toplevel:
         template_frame: Toplevel = Toplevel(window_controls.window)
@@ -1556,6 +1557,13 @@ class window_controls:
             answer_option: answer = quiz_handler.question_list[question_number - 1].answer_options[i]
             answer_colours: list[colour] = window_controls.convert_to_colours(answer_option.answer_colours)
 
+            if question_number < quiz_handler.question_number:
+                if answer_option in quiz_handler.question_list[question_number - 1].selected_answers:
+                    if answer_option.correct_answer:
+                        answer_colours = window_design.correct_answer_colours
+                    else:
+                        answer_colours = window_design.incorrect_answer_colours
+
             match i:
                 case 0:
                     x = col_1
@@ -1594,22 +1602,24 @@ class window_controls:
         potential_answer: answer = current_question.answer_options[answer_index]
 
         if potential_answer == window_controls.current_selected_answer:
-            #print("Returned False - Answer Already Selected")
             return False
         
         for selected_answer in current_question.selected_answers:
             if potential_answer == selected_answer:
-                #print("Returned False - Answer Already Chosen")
                 return False
 
-        #print("Returned True - No Issues")
         return True        
 
     def reset_question_buttons(question_number: int) -> None:
         button_colours: list[colour]
 
         for i in range(len(window_controls.answer_buttons)):
-            button_colours = window_controls.convert_to_colours(quiz_handler.question_list[question_number - 1].answer_options[i].answer_colours)
+            answer_option: answer = quiz_handler.question_list[question_number - 1].answer_options[i]
+            button_colours = window_controls.convert_to_colours(answer_option.answer_colours)
+
+            if answer_option in quiz_handler.question_list[question_number - 1].selected_answers:
+                button_colours = window_design.incorrect_answer_colours
+
             window_controls.answer_buttons[i].configure(bg = button_colours[0].colour_code, fg = button_colours[1].colour_code)
 
     def check_answer(question_number: int) -> None:
@@ -1633,12 +1643,7 @@ class window_controls:
         if window_controls.current_selected_answer == quiz_handler.question_list[question_number - 1].correct_answer:
             window_controls.answer_buttons[window_controls.current_selected_answer.answer_index].configure(bg = window_design.correct_answer_colours[0].colour_code, fg = window_design.correct_answer_colours[1].colour_code)
 
-            the_question: question = quiz_handler.question_list[question_number - 1]
-            the_answer: answer = the_question.answer_options[window_controls.current_selected_answer.answer_index]
-            the_answer.answer_colours = [window_design.correct_answer_colours[0].colour_name,
-                                         window_design.correct_answer_colours[1].colour_name]
-
-            the_question.question_answered = True
+            quiz_handler.question_list[question_number - 1].question_answered = True
             quiz_handler.current_score += points_awarded
             window_controls.current_score_label.configure(text = f"Current Score: {quiz_handler.current_score}")
 
@@ -1647,13 +1652,8 @@ class window_controls:
         else:
             window_controls.answer_buttons[window_controls.current_selected_answer.answer_index].configure(bg = window_design.incorrect_answer_colours[0].colour_code,fg = window_design.incorrect_answer_colours[1].colour_code)
 
-            the_question: question = quiz_handler.question_list[question_number - 1]
-            the_answer: answer = the_question.answer_options[window_controls.current_selected_answer.answer_index]
-            the_answer.answer_colours = [window_design.incorrect_answer_colours[0].colour_name,
-                                         window_design.incorrect_answer_colours[1].colour_name]
-
             if window_controls.attempts_at_question == 2:
-                the_question.question_answered = True
+                quiz_handler.question_list[question_number - 1].question_answered = True
                 window_controls.next_question(question_number, "Hint")
 
     def next_question(question_number: int, popup_option: str) -> None:
@@ -1666,6 +1666,19 @@ class window_controls:
                 popup_string = quiz_handler.question_list[question_number - 1].hint
         
         print(popup_string)
+
+        label_colours: list[colour] = window_controls.convert_to_colours(window_controls.current_user.label_colours)
+        
+        width: int = window_design.get_question_page_width()
+        small_height: int = window_design.get_question_page_small_height()
+        large_height: int = window_design.get_question_page_large_height()
+
+        y_value: int = (4 * window_design.spacer) + (1 * (window_design.spacer + small_height)) + ((window_design.spacer + (2 * small_height))) + (large_height / 2)
+        display_width: int = (2 * (window_design.spacer + width))
+        display_height: int = (2 * window_design.spacer) + large_height
+
+        hint_fact_output: Label = Label(window_controls.main_quiz_page, text = popup_string, bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
+        hint_fact_output.place(x = (2 * window_design.spacer), y = y_value, width = display_width, height = display_height)
 
         # Display Hint or Fact
         # Go To Next Question or End Quiz and Go To Score Page
@@ -1799,12 +1812,7 @@ class window_controls:
 
     def calculate_view_question_dimensions() -> str:
         page_width: int = (6 * window_design.spacer) + (2 * window_design.get_question_page_width())
-        page_height: int = 500
-        return f"{page_width}x{page_height}"
-    
-    def calculate_review_question_dimensions() -> str:
-        page_width: int = (6 * window_design.spacer) + (2 * window_design.get_question_page_width())
-        page_height: int = 500
+        page_height: int = (4 * window_design.spacer) + (5 * (window_design.spacer + window_design.get_question_page_small_height())) + (2 * (window_design.spacer + window_design.get_question_page_large_height()))
         return f"{page_width}x{page_height}"
 
 

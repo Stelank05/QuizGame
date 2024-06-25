@@ -19,7 +19,6 @@ class question:
         self.correct_audio: str = question_data["Correct Audio"]
         self.incorrect_audio: str = question_data["Incorrect Audio"]
 
-#        self.question_frame: Toplevel = None
         self.selected_answers: list[answer] = []
 
         self.question_index: int = 0
