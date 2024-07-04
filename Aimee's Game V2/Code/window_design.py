@@ -117,6 +117,14 @@ class window_design:
     question_page_large_height: int
 
 
+    # Quiz Over Page Sizes
+
+    quiz_over_width: int
+    quiz_over_small_height: int
+    quiz_over_large_height: int
+    quiz_over_font: tuple[str, int]
+
+
     # Default Window Design Controls
 
     def set_window_colours(new_window_colours: list[colour]) -> None:
@@ -457,3 +465,30 @@ class window_design:
 
     def get_question_page_large_height() -> int:
         return window_design.question_page_large_height
+
+
+    # Question Page Size Controls
+
+    def set_quiz_over_width(new_width: int) -> None:
+        window_design.quiz_over_width = new_width
+
+    def get_quiz_over_width() -> int:
+        return window_design.quiz_over_width
+    
+    def set_quiz_over_small_height(new_height: int) -> None:
+        window_design.quiz_over_small_height = new_height
+
+    def get_quiz_over_small_height() -> int:
+        return window_design.quiz_over_small_height
+    
+    def set_quiz_over_large_height(new_height: int) -> None:
+        window_design.quiz_over_large_height = new_height
+
+    def get_quiz_over_large_height() -> int:
+        return window_design.quiz_over_large_height
+
+    def set_quiz_over_font(new_font: str, new_size: int) -> None:
+        window_design.quiz_over_font = [new_font, new_size]
+
+    def get_quiz_over_font() -> int:
+        return window_design.quiz_over_font

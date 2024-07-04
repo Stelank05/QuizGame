@@ -43,6 +43,8 @@ class window_controls:
 
     question_main_page: Toplevel = None
     question_list_page: Toplevel = None
+    quiz_end_page: Toplevel = None
+
     create_question_page: Toplevel = None
     select_question_colours_page: Toplevel = None
     
@@ -1290,7 +1292,7 @@ class window_controls:
         if window_controls.setup_quiz_page == None or not window_controls.setup_quiz_page.winfo_exists():
             window_controls.make_setup_quiz_page()
         else:
-            #window_controls.clear_setup_quiz_page()
+            window_controls.clear_setup_quiz()
             window_controls.setup_quiz_page.update()
             window_controls.setup_quiz_page.deiconify()
 
@@ -1414,7 +1416,6 @@ class window_controls:
         set_length_button: Button = Button(window_controls.set_length_window, text = "Set Quiz Length", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.set_custom_length)
         set_length_button.place(x = (2 * window_design.spacer), y = (0 * window_design.spacer) + (3 * (window_design.spacer + small_height)), width = width, height = small_height)
 
-
     def set_custom_length() -> None:
         quiz_handler.quiz_length = int(window_controls.quiz_length.get())
         window_controls.quiz_length_buttons[3].configure(text = f"Custom - {int(window_controls.quiz_length.get())} Questions")
@@ -1422,6 +1423,7 @@ class window_controls:
 
     def start_quiz() -> None:
         if not (quiz_handler.quiz_length == None and quiz_handler.quiz_difficulty == None):
+            window_controls.setup_quiz_page.withdraw()
             quiz_handler.generate_quiz()
             window_controls.display_question_controller(1)
         else:
@@ -1434,8 +1436,6 @@ class window_controls:
     # Complete Quiz Functions
 
     def display_question_controller(question_number: int) -> None:
-        #window_controls.setup_quiz_page.deiconify()
-
         window_controls.attempts_at_question = 0
         window_controls.current_selected_answer = None
 
@@ -1647,12 +1647,26 @@ class window_controls:
             quiz_handler.current_score += points_awarded
             window_controls.current_score_label.configure(text = f"Current Score: {quiz_handler.current_score}")
 
+            audio_path: str = os.path.join(common_data.get_audio_folder(), common_data.get_audio_from_name(quiz_handler.question_list[question_number - 1].correct_audio))
+            
+            if os.path.exists(audio_path):
+                pygame.mixer.music.load(audio_path)
+                pygame.mixer.music.play(loops = 0)
+
             quiz_handler.question_number += 1
             window_controls.next_question(question_number, "Fun Fact")
         else:
             window_controls.answer_buttons[window_controls.current_selected_answer.answer_index].configure(bg = window_design.incorrect_answer_colours[0].colour_code,fg = window_design.incorrect_answer_colours[1].colour_code)
+            window_controls.current_selected_answer = None
+
+            audio_path: str = os.path.join(common_data.get_audio_folder(), common_data.get_audio_from_name(quiz_handler.question_list[question_number - 1].incorrect_audio))
+            
+            if os.path.exists(audio_path):
+                pygame.mixer.music.load(audio_path)
+                pygame.mixer.music.play(loops = 0)
 
             if window_controls.attempts_at_question == 2:
+                quiz_handler.question_number += 1
                 quiz_handler.question_list[question_number - 1].question_answered = True
                 window_controls.next_question(question_number, "Hint")
 
@@ -1665,7 +1679,7 @@ class window_controls:
             case "Hint":
                 popup_string = quiz_handler.question_list[question_number - 1].hint
         
-        print(popup_string)
+        #print(popup_string)
 
         label_colours: list[colour] = window_controls.convert_to_colours(window_controls.current_user.label_colours)
         
@@ -1673,20 +1687,86 @@ class window_controls:
         small_height: int = window_design.get_question_page_small_height()
         large_height: int = window_design.get_question_page_large_height()
 
-        y_value: int = (4 * window_design.spacer) + (1 * (window_design.spacer + small_height)) + ((window_design.spacer + (2 * small_height))) + (large_height / 2)
+        y_value: int = (3 * window_design.spacer) + (1 * (window_design.spacer + small_height)) + ((window_design.spacer + (2 * small_height))) + (large_height / 2)
         display_width: int = (2 * (window_design.spacer + width))
-        display_height: int = (2 * window_design.spacer) + large_height
+        display_height: int = (1 * window_design.spacer) + large_height
 
         hint_fact_output: Label = Label(window_controls.main_quiz_page, text = popup_string, bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
         hint_fact_output.place(x = (2 * window_design.spacer), y = y_value, width = display_width, height = display_height)
 
-        # Display Hint or Fact
-        # Go To Next Question or End Quiz and Go To Score Page
-
         if question_number + 1 > quiz_handler.quiz_length:
-            window_controls.select_answer_button.configure(text = "End Quiz", command = window_controls.main_quiz_page.destroy)
+            window_controls.select_answer_button.configure(text = "End Quiz", command = window_controls.make_quiz_end_page)
         else:
             window_controls.select_answer_button.configure(text = "Next Question", command = functools.partial(window_controls.display_question_controller, question_number + 1))
+
+    def make_quiz_end_page() -> None:
+        window_controls.main_quiz_page.destroy()
+        window_controls.quiz_end_page = Toplevel(window_controls.window)
+
+        window_colours: list[colour] = window_controls.convert_to_colours(window_controls.current_user.window_colours)
+        label_colours: list[colour] = window_controls.convert_to_colours(window_controls.current_user.label_colours)
+        button_colours: list[colour] = window_controls.convert_to_colours(window_controls.current_user.button_colours)
+        
+        width: int = window_design.get_quiz_over_width()
+        small_height: int = window_design.get_quiz_over_small_height()
+        large_height: int = window_design.get_quiz_over_large_height()
+        quiz_over_font: tuple[str, int] = window_design.get_quiz_over_font()
+
+        window_controls.quiz_end_page.geometry(window_controls.calculate_end_quiz_dimensions())
+        window_controls.quiz_end_page.config(bg = window_colours[0].colour_code)
+
+        window_controls.update_user_details()
+
+        quiz_over_label: Label = Label(window_controls.quiz_end_page, text = "Quiz Over!", bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = quiz_over_font)
+        quiz_over_label.place(x = (2 * window_design.spacer), y = (2 * window_design.spacer), width = (4 * window_design.spacer) + (2 * width), height = large_height)
+
+        score_percentage: float = (quiz_handler.current_score / quiz_handler.quiz_length) * 100
+
+        score_label: Label = Label(window_controls.quiz_end_page, text = f"Your Score: {quiz_handler.current_score}\nPercentage: {score_percentage}%", bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
+        score_label.place(x = (2 * window_design.spacer), y = (2 * window_design.spacer) + (1 * (window_design.spacer + large_height)), width = (4 * window_design.spacer) + (2 * width), height = large_height)
+
+        message_label: Label = Label(window_controls.quiz_end_page, bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
+        message_label.place(x = (2 * window_design.spacer), y = (2 * window_design.spacer) + (2 * (window_design.spacer + large_height)), width = (4 * window_design.spacer) + (2 * width), height = large_height)
+
+        end_quiz_button: Button = Button(window_controls.quiz_end_page, bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font)
+        end_quiz_button.place(x = (2 * window_design.spacer), y = (2 * window_design.spacer) + (3 * (window_design.spacer + large_height)), width = (4 * window_design.spacer) + (2 * width), height = small_height)
+
+        exit_button_y_value: int = (2 * window_design.spacer) + (3 * (window_design.spacer + large_height)) + (window_design.spacer + small_height)
+
+        if score_percentage == 100:
+            message_label.configure(text = "Well Done, you got all the Questions Correct!")
+            end_quiz_button.configure(text = "Finish Quiz", command = window_controls.end_quiz)
+        elif score_percentage >= 90:
+            message_label.configure(text = "Well Done! You didn't get all the questions correct, but you weren't far off!")
+            end_quiz_button.configure(text = "Finish Quiz", command = window_controls.end_quiz)
+        elif score_percentage >= 70:
+            message_label.configure(text = "Well Done! You didn't get all the questions correct,\nbut you weren't far off!")
+            end_quiz_button.configure(text = "Finish Quiz", command = window_controls.end_quiz)
+            
+            retake_quiz_button: Button = Button(window_controls.quiz_end_page, text = "Retake Quiz", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.retake_quiz)
+            retake_quiz_button.place(x = (2 * window_design.spacer), y = exit_button_y_value, width = (4 * window_design.spacer) + (2 * width), height = small_height)
+
+            exit_button_y_value += (window_design.spacer + small_height)
+            window_geometry: str = window_controls.calculate_end_quiz_dimensions()
+            window_controls.quiz_end_page.geometry(f"{window_geometry.split('x')[0]}x{int(window_geometry.split('x')[1]) + (window_design.spacer + small_height)}")
+        else:
+            message_label.configure(text = "Well, that was interesting. Do that again.")
+            end_quiz_button.configure(text = "Retake Quiz", command = window_controls.retake_quiz)
+
+        exit_button: Button = Button(window_controls.quiz_end_page, text = "Exit", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.kill_program)
+        exit_button.place(x = (2 * window_design.spacer), y = exit_button_y_value, width = (4 * window_design.spacer) + (2 * width), height = small_height)
+
+    def retake_quiz() -> None:
+        window_controls.quiz_end_page.withdraw()
+        window_controls.clear_setup_quiz()
+        window_controls.setup_quiz_controller()
+
+    def end_quiz() -> None:
+        window_controls.quiz_end_page.destroy()
+        window_controls.user_account_controller("")
+
+    def update_user_details() -> None:
+        pass
 
 
     # Clear Pages
@@ -1738,6 +1818,12 @@ class window_controls:
             answer_details_pair[1].configure(bg = window_colours[1].colour_code, fg = window_colours[0].colour_code)
 
         window_controls.create_question_button.configure(text = "Create Question")#, command = window_controls.create_question)
+
+    def clear_setup_quiz() -> None:
+        window_controls.quiz_length = None
+        window_controls.reset_buttons(window_controls.difficulty_buttons)
+        window_controls.reset_buttons(window_controls.quiz_length_buttons)
+        window_controls.quiz_length_buttons[len(window_controls.quiz_length_buttons) - 1].configure(text = "Custom")
 
 
     # Dimension Calculations
@@ -1813,6 +1899,11 @@ class window_controls:
     def calculate_view_question_dimensions() -> str:
         page_width: int = (6 * window_design.spacer) + (2 * window_design.get_question_page_width())
         page_height: int = (4 * window_design.spacer) + (5 * (window_design.spacer + window_design.get_question_page_small_height())) + (2 * (window_design.spacer + window_design.get_question_page_large_height()))
+        return f"{page_width}x{page_height}"
+
+    def calculate_end_quiz_dimensions() -> str:
+        page_width: int = (8 * window_design.spacer) + (2 * window_design.get_quiz_over_width())
+        page_height: int = (3 * window_design.spacer) + (3 * (window_design.spacer + window_design.get_quiz_over_large_height())) + (2 * (window_design.spacer + window_design.get_quiz_over_small_height()))
         return f"{page_width}x{page_height}"
 
 
@@ -2494,7 +2585,7 @@ class window_controls:
                 window_controls.question_list_page.update()
                 window_controls.question_list_page.deiconify()
             case "Setup Quiz":
-#                window_controls.clear_setup_quiz()
+                window_controls.clear_setup_quiz()
                 window_controls.setup_quiz_page.update()
                 window_controls.setup_quiz_page.deiconify()
             case _:

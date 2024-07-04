@@ -131,6 +131,17 @@
                 "Small Widget Height" : 25,
                 "Large Widget Height" : 40
             }
+        ],
+
+        "Quiz Over Page Sizes":
+        [
+            {
+                "Widget Width" : 150,
+                "Small Widget Height" : 25,
+                "Large Widget Height" : 40,
+                "Font Type" : "calibri",
+                "Font Size" : 18
+            }
         ]
     }
 ]

@@ -124,6 +124,12 @@ def load_window_data() -> None:
     window_design.set_question_page_small_height(window_data["Question Page Sizes"][0]["Small Widget Height"])
     window_design.set_question_page_large_height(window_data["Question Page Sizes"][0]["Large Widget Height"])
 
+    # Setup Quiz Window Details
+    window_design.set_quiz_over_width(window_data["Quiz Over Page Sizes"][0]["Widget Width"])
+    window_design.set_quiz_over_small_height(window_data["Quiz Over Page Sizes"][0]["Small Widget Height"])
+    window_design.set_quiz_over_large_height(window_data["Quiz Over Page Sizes"][0]["Large Widget Height"])
+    window_design.set_quiz_over_font(window_data["Quiz Over Page Sizes"][0]["Font Type"], int(window_data["Quiz Over Page Sizes"][0]["Font Size"]))
+
 def load_audio_files() -> None:
     audio_data: list[str] = read_file(common_data.get_audio_file())
 
