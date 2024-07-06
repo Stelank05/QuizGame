@@ -10,7 +10,7 @@ class user:
         self.entry_colours: list[str] = [user_data["User Colours"]["Entry Background Colour"], user_data["User Colours"]["Entry Foreground Colour"]]
 
         self.high_score: float = user_data["High Score"]
-        self.previous_scores: list[int] = self.load_previous_scores(user_data["Previous Scores"])
+        self.previous_scores: list[float] = self.load_previous_scores(user_data["Previous Scores"])
 
         self.average_score: float = self.calculate_average_score()
 
@@ -19,7 +19,7 @@ class user:
         score_keys: list[str] = list(previous_scores.keys())
 
         for score in score_keys:
-            return_list.append(int(previous_scores[score]))
+            return_list.append(float(previous_scores[score]))
         
         return return_list
     

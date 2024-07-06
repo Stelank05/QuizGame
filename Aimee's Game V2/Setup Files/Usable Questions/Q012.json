@@ -1,0 +1,44 @@
+{
+    "Question ID" : "Q012",
+    "Question Difficulty" : "Hard",
+
+    "Question" : "How did people used to do Switch Cases (Match Statements) in Python, before 1.10?",
+
+    "Answers" : 
+    [
+        {
+            "Answer Text" : "Dictionaries",
+            "Answer Back Colour" : "Dark Blue",
+            "Answer Text Colour" : "White",
+            "Correct Answer" : true,
+            "Answer Index" : 1
+        },
+        {
+            "Answer Text" : "Many Ifs",
+            "Answer Back Colour" : "Dark Blue",
+            "Answer Text Colour" : "White",
+            "Correct Answer" : false,
+            "Answer Index" : 2
+        },
+        {
+            "Answer Text" : "It's always had dictionaries",
+            "Answer Back Colour" : "Dark Blue",
+            "Answer Text Colour" : "White",
+            "Correct Answer" : false,
+            "Answer Index" : 3
+        },
+        {
+            "Answer Text" : "Lists",
+            "Answer Back Colour" : "Dark Blue",
+            "Answer Text Colour" : "White",
+            "Correct Answer" : false,
+            "Answer Index" : 4
+        }
+    ],
+
+    "Fun Fact" : "Because then you can use the key to find an Item and perform relevant code",
+    "Hint" : "Big Book of Words",
+
+    "Correct Audio" : "Piano",
+    "Incorrect Audio" : "Incorrect"
+}

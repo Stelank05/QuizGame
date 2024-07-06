@@ -60,16 +60,12 @@ class window_design:
     colour_editor_small_width: int
     colour_editor_small_height: int
     colour_editor_large_height: int
-    colour_editor_listbox_item_height: int
-    colour_editor_listbox_visible_items: int
 
 
     # View Account Page Sizes
 
     view_account_small_width: int
     view_account_small_height: int
-    view_account_listbox_item_height: int
-    view_account_listbox_visible_items: int
 
 
     # Audio Editor Page Sizes
@@ -77,8 +73,6 @@ class window_design:
     audio_editor_small_width: int
     audio_editor_small_height: int
     audio_editor_large_height: int
-    audio_editor_listbox_item_height: int
-    audio_editor_listbox_visible_items: int
 
 
     # Question List Page Sizes
@@ -115,6 +109,14 @@ class window_design:
     question_page_difficulty_width: int
     question_page_small_height: int
     question_page_large_height: int
+
+
+    # Quiz Over Page Sizes
+
+    quiz_over_width: int
+    quiz_over_small_height: int
+    quiz_over_large_height: int
+    quiz_over_font: tuple[str, int]
 
 
     # Default Window Design Controls
@@ -275,18 +277,6 @@ class window_design:
     def get_colour_editor_large_height() -> int:
         return window_design.colour_editor_large_height
     
-    def set_colour_editor_listbox_item_height(new_height: int) -> None:
-        window_design.colour_editor_listbox_item_height = new_height
-
-    def get_colour_editor_listbox_item_height() -> int:
-        return window_design.colour_editor_listbox_item_height
-    
-    def set_colour_editor_listbox_visible_items(new_height: int) -> None:
-        window_design.colour_editor_listbox_visible_items = new_height
-
-    def get_colour_editor_listbox_visible_items() -> int:
-        return window_design.colour_editor_listbox_visible_items
-    
 
     # View Account Size Controls
 
@@ -301,18 +291,6 @@ class window_design:
 
     def get_view_account_small_height() -> int:
         return window_design.view_account_small_height
-    
-    def set_view_account_listbox_item_height(new_height: int) -> None:
-        window_design.view_account_listbox_item_height = new_height
-
-    def get_view_account_listbox_item_height() -> int:
-        return window_design.view_account_listbox_item_height
-    
-    def set_view_account_listbox_visible_items(new_height: int) -> None:
-        window_design.view_account_listbox_visible_items = new_height
-
-    def get_view_account_listbox_visible_items() -> int:
-        return window_design.view_account_listbox_visible_items
     
 
     # Audio Editor Size Controls
@@ -334,18 +312,6 @@ class window_design:
 
     def get_audio_editor_large_height() -> int:
         return window_design.audio_editor_large_height
-    
-    def set_audio_editor_listbox_item_height(new_height: int) -> None:
-        window_design.audio_editor_listbox_item_height = new_height
-
-    def get_audio_editor_listbox_item_height() -> int:
-        return window_design.audio_editor_listbox_item_height
-    
-    def set_audio_editor_listbox_visible_items(new_height: int) -> None:
-        window_design.audio_editor_listbox_visible_items = new_height
-
-    def get_audio_editor_listbox_visible_items() -> int:
-        return window_design.audio_editor_listbox_visible_items
     
 
     # Question List Size Controls
@@ -457,3 +423,30 @@ class window_design:
 
     def get_question_page_large_height() -> int:
         return window_design.question_page_large_height
+
+
+    # Question Page Size Controls
+
+    def set_quiz_over_width(new_width: int) -> None:
+        window_design.quiz_over_width = new_width
+
+    def get_quiz_over_width() -> int:
+        return window_design.quiz_over_width
+    
+    def set_quiz_over_small_height(new_height: int) -> None:
+        window_design.quiz_over_small_height = new_height
+
+    def get_quiz_over_small_height() -> int:
+        return window_design.quiz_over_small_height
+    
+    def set_quiz_over_large_height(new_height: int) -> None:
+        window_design.quiz_over_large_height = new_height
+
+    def get_quiz_over_large_height() -> int:
+        return window_design.quiz_over_large_height
+
+    def set_quiz_over_font(new_font: str, new_size: int) -> None:
+        window_design.quiz_over_font = [new_font, new_size]
+
+    def get_quiz_over_font() -> int:
+        return window_design.quiz_over_font

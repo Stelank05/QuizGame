@@ -137,6 +137,11 @@ class common_data:
     def get_audio_list() -> list[audio]:
         return common_data.audio_list
 
+    def get_audio_from_name(audio_name: str) -> audio:
+        for audio_option in common_data.audio_list:
+            if audio_option.audio_name == audio_name:
+                return audio_option.audio_file
+
 
     # Colour Controls
 

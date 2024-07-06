@@ -1,7 +1,5 @@
 import functools
-import math
 import pygame
-import random
 import re
 
 from tkinter import *
@@ -43,13 +41,16 @@ class window_controls:
 
     question_main_page: Toplevel = None
     question_list_page: Toplevel = None
+    quiz_end_page: Toplevel = None
+
     create_question_page: Toplevel = None
     select_question_colours_page: Toplevel = None
+    preview_question_page: Toplevel = None
     
     colour_editor_page: Toplevel = None
     audio_editor_page: Toplevel = None
 
-    frame_list: list[str] = ["Login", "Create Account", "User Account", "Colour Editor", "Audio Editor"]#, ""]
+    frame_list: list[str] = ["Login", "Create Account", "User Account", "Colour Editor", "Audio Editor", "Question Editor", "Setup Quiz"]#, ""]
 
     current_user: user
 
@@ -672,32 +673,27 @@ class window_controls:
         width: int = window_design.get_view_account_width()
         small_height: int = window_design.get_view_account_small_height()
 
-        listbox_height: int = window_design.get_view_account_listbox_item_height()
-        listbox_visible: int = window_design.get_view_account_listbox_visible_items()
-
         window_controls.view_account_page.geometry(window_controls.calculate_view_account_dimensions())
         window_controls.view_account_page.config(bg = window_colours[0].colour_code)
 
         window_controls.high_score_label = Label(window_controls.view_account_page, text = f"High Score: {window_controls.current_user.high_score}", bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
         window_controls.high_score_label.place(x = (2 * window_design.spacer), y = (2 * window_design.spacer), width = width, height = small_height)
 
+        window_controls.current_user.calculate_average_score()
         window_controls.average_score_label = Label(window_controls.view_account_page, text = f"Average Score: {window_controls.current_user.average_score}", bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
         window_controls.average_score_label.place(x = (2 * window_design.spacer), y = (2 * window_design.spacer) + (1 * (window_design.spacer + small_height)), width = width, height = small_height)
 
-        scores_listbox_height: int = listbox_height * listbox_visible
-        scores_listbox_height_stratified: int = scores_listbox_height + (5 - (scores_listbox_height % 5))
-
         window_controls.previous_scores_listbox = Listbox(window_controls.view_account_page, font = window_design.main_font)
-        window_controls.previous_scores_listbox.place(x = 2 * window_design.spacer, y = (2 * window_design.spacer) + (2 * (window_design.spacer + small_height)), width = width, height = scores_listbox_height)
+        window_controls.previous_scores_listbox.place(x = 2 * window_design.spacer, y = (2 * window_design.spacer) + (2 * (window_design.spacer + small_height)), width = width, height = 8 * small_height)
 
         for i in range(len(window_controls.current_user.previous_scores)):
             window_controls.previous_scores_listbox.insert('end', f"{(i + 1)}: {window_controls.current_user.previous_scores[i]}")
 
         back_button: Button = Button(window_controls.view_account_page, text = "Back", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.go_back)
-        back_button.place(x = (2 * window_design.spacer), y = (2 * window_design.spacer) + (2 * (window_design.spacer + small_height)) + (window_design.spacer + scores_listbox_height_stratified), width = width, height = small_height)
+        back_button.place(x = (2 * window_design.spacer), y = (2 * window_design.spacer) + (2 * (window_design.spacer + small_height)) + (window_design.spacer + (8 * small_height)), width = width, height = small_height)
 
         exit_button: Button = Button(window_controls.view_account_page, text = "Exit", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.kill_program)
-        exit_button.place(x = (2 * window_design.spacer), y = (2 * window_design.spacer) + (3 * (window_design.spacer + small_height)) + (window_design.spacer + scores_listbox_height_stratified), width = width, height = small_height)
+        exit_button.place(x = (2 * window_design.spacer), y = (2 * window_design.spacer) + (3 * (window_design.spacer + small_height)) + (window_design.spacer + (8 * small_height)), width = width, height = small_height)
 
     def edit_account() -> None:
         if window_controls.create_account_page != None:
@@ -737,17 +733,11 @@ class window_controls:
         small_height: int = window_design.get_colour_editor_small_height()
         large_height: int = window_design.get_colour_editor_large_height()
 
-        listbox_height: int = window_design.get_colour_editor_listbox_item_height()
-        listbox_visible: int = window_design.get_colour_editor_listbox_visible_items()
-
         window_controls.colour_editor_page.geometry(window_controls.calculate_colour_editor_dimensions())
         window_controls.colour_editor_page.config(bg = window_colours[0].colour_code)
 
-        colour_listbox_height: int = listbox_height * listbox_visible
-        colour_listbox_height_stratified: int = colour_listbox_height + (5 - (colour_listbox_height % 5))
-
         window_controls.colour_listbox = Listbox(window_controls.colour_editor_page, font = window_design.main_font)
-        window_controls.colour_listbox.place(x = 2 * window_design.spacer, y = 2 * window_design.spacer, width = width, height = colour_listbox_height)
+        window_controls.colour_listbox.place(x = 2 * window_design.spacer, y = 2 * window_design.spacer, width = width, height = (1 * window_design.spacer) + (4 * (window_design.spacer + small_height)) + (window_design.spacer + large_height))
 
         for colour_option in common_data.colour_list:
             window_controls.colour_listbox.insert('end', colour_option.colour_name)
@@ -765,33 +755,36 @@ class window_controls:
         window_controls.colour_code.place(x = (6 * window_design.spacer) + width, y = (3 * window_design.spacer) + (3 * (window_design.spacer + small_height)), width = width, height = small_height)
 
         colour_preview_border: Label = Label(window_controls.colour_editor_page, bg = label_colours[0].colour_code)
-        colour_preview_border.place(x = (6 * window_design.spacer) + width, y = (5 * window_design.spacer) + (4 * (window_design.spacer + small_height)), width = width, height = large_height)
+        colour_preview_border.place(x = (6 * window_design.spacer) + width, y = (4 * window_design.spacer) + (4 * (window_design.spacer + small_height)), width = width, height = large_height)
 
         window_controls.colour_preview = Label(window_controls.colour_editor_page, bg = window_colours[0].colour_code)
-        window_controls.colour_preview.place(x = (7 * window_design.spacer) + width, y = (6 * window_design.spacer) + (4 * (window_design.spacer + small_height)), width = width - (2 * window_design.spacer), height = large_height - (2 * window_design.spacer))
+        window_controls.colour_preview.place(x = (7 * window_design.spacer) + width, y = (5 * window_design.spacer) + (4 * (window_design.spacer + small_height)), width = width - (2 * window_design.spacer), height = large_height - (2 * window_design.spacer))
 
         # Right Hand Buttons
+        preview_colour_button: Button = Button(window_controls.colour_editor_page, text = "Preview Colour", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.preview_colour)
+        preview_colour_button.place(x = (6 * window_design.spacer) + width, y = (5 * window_design.spacer) + (4 * (window_design.spacer + small_height)) + (window_design.spacer + large_height), width = width, height = small_height)
+
         create_colour_button: Button = Button(window_controls.colour_editor_page, text = "Create Colour", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.create_colour)
-        create_colour_button.place(x = (6 * window_design.spacer) + width, y = (6 * window_design.spacer) + (4 * (window_design.spacer + small_height)) + (window_design.spacer + large_height), width = width, height = small_height)
+        create_colour_button.place(x = (6 * window_design.spacer) + width, y = (5 * window_design.spacer) + (5 * (window_design.spacer + small_height)) + (window_design.spacer + large_height), width = width, height = small_height)
 
         update_colour_button: Button = Button(window_controls.colour_editor_page, text = "Update Colour", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.update_colour)
-        update_colour_button.place(x = (6 * window_design.spacer) + width, y = (6 * window_design.spacer) + (5 * (window_design.spacer + small_height)) + (window_design.spacer + large_height), width = width, height = small_height)
+        update_colour_button.place(x = (6 * window_design.spacer) + width, y = (5 * window_design.spacer) + (6 * (window_design.spacer + small_height)) + (window_design.spacer + large_height), width = width, height = small_height)
 
         clear_button: Button = Button(window_controls.colour_editor_page, text = "Clear Colour", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.clear_colour_selector)
-        clear_button.place(x = (6 * window_design.spacer) + width, y = (6 * window_design.spacer) + (6 * (window_design.spacer + small_height)) + (window_design.spacer + large_height), width = width, height = small_height)
+        clear_button.place(x = (6 * window_design.spacer) + width, y = (5 * window_design.spacer) + (7 * (window_design.spacer + small_height)) + (window_design.spacer + large_height), width = width, height = small_height)
 
         # Left Hand Buttons
         select_colour_button: Button = Button(window_controls.colour_editor_page, text = "Select Colour", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.select_colour)
-        select_colour_button.place(x = 2 * window_design.spacer, y = (4 * window_design.spacer) + (colour_listbox_height_stratified), width = width, height = small_height)
+        select_colour_button.place(x = 2 * window_design.spacer, y = (5 * window_design.spacer) + (4 * (window_design.spacer + small_height)) + (window_design.spacer + large_height), width = width, height = small_height)
 
         delete_colour_button: Button = Button(window_controls.colour_editor_page, text = "Delete Colour", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.delete_colour)
-        delete_colour_button.place(x = 2 * window_design.spacer, y = (4 * window_design.spacer) + (colour_listbox_height_stratified) + (1 * (window_design.spacer + small_height)), width = width, height = small_height)
+        delete_colour_button.place(x = 2 * window_design.spacer, y = (5 * window_design.spacer) + (5 * (window_design.spacer + small_height)) + (window_design.spacer + large_height), width = width, height = small_height)
 
         back_button: Button = Button(window_controls.colour_editor_page, text = "Back", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.go_back)
-        back_button.place(x = 2 * window_design.spacer, y = (4 * window_design.spacer) + (colour_listbox_height_stratified) + (2 * (window_design.spacer + small_height)), width = width, height = small_height)
+        back_button.place(x = 2 * window_design.spacer, y = (5 * window_design.spacer) + (6 * (window_design.spacer + small_height)) + (window_design.spacer + large_height), width = width, height = small_height)
 
         exit_button: Button = Button(window_controls.colour_editor_page, text = "Exit", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.kill_program)
-        exit_button.place(x = 2 * window_design.spacer, y = (4 * window_design.spacer) + (colour_listbox_height_stratified) + (3 * (window_design.spacer + small_height)), width = width, height = small_height)
+        exit_button.place(x = 2 * window_design.spacer, y = (5 * window_design.spacer) + (7 * (window_design.spacer + small_height)) + (window_design.spacer + large_height), width = width, height = small_height)
 
     def select_colour() -> None:
         window_controls.selected_colour = common_data.colour_list[window_controls.colour_listbox.curselection()[0]]
@@ -801,6 +794,13 @@ class window_controls:
         window_controls.colour_name.insert(0, window_controls.selected_colour.colour_name)
         window_controls.colour_code.insert(0, window_controls.selected_colour.colour_code)
         window_controls.colour_preview.configure(bg = window_controls.selected_colour.colour_code)
+    
+    def preview_colour() -> None:
+        colour_code: str = window_controls.colour_code.get()
+        if window_controls.valid_hex_code(colour_code):
+            window_controls.colour_preview.configure(bg = colour_code)
+        else:
+            messagebox.showwarning("Invalid Code", "That is an Invalid Colour Code, cannot showa a preview")
 
 
     # Audio Editor Functions
@@ -831,19 +831,12 @@ class window_controls:
 
         width: int = window_design.get_audio_editor_width()
         small_height: int = window_design.get_audio_editor_small_height()
-#        large_height: int = window_design.get_audio_editor_large_height()
-
-        listbox_height: int = window_design.get_audio_editor_listbox_item_height()
-        listbox_visible: int = window_design.get_audio_editor_listbox_visible_items()
 
         window_controls.audio_editor_page.geometry(window_controls.calculate_audio_editor_dimensions())
         window_controls.audio_editor_page.config(bg = window_colours[0].colour_code)
 
-        audio_listbox_height: int = listbox_height * listbox_visible
-        audio_listbox_height_stratified: int = audio_listbox_height + (5 - (audio_listbox_height % 5))
-
         window_controls.audio_listbox = Listbox(window_controls.audio_editor_page, font = window_design.main_font)
-        window_controls.audio_listbox.place(x = 2 * window_design.spacer, y = 2 * window_design.spacer, width = width, height = audio_listbox_height_stratified)
+        window_controls.audio_listbox.place(x = 2 * window_design.spacer, y = 2 * window_design.spacer, width = width, height = (4 * small_height) + (3 * (window_design.spacer + small_height)))
 
         for audio_option in common_data.audio_list:
             window_controls.audio_listbox.insert('end', audio_option.audio_name)
@@ -860,32 +853,31 @@ class window_controls:
         window_controls.audio_file = Entry(window_controls.audio_editor_page, bg = entry_colours[0].colour_code, fg = entry_colours[1].colour_code, font = window_design.main_font)
         window_controls.audio_file.place(x = (6 * window_design.spacer) + width, y = (3 * window_design.spacer) + (3 * (window_design.spacer + small_height)), width = width, height = small_height)
 
-        # Preview Audio Button
-        preview_audio: Button = Button(window_controls.audio_editor_page, text = "Preview Audio", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.play_audio)
-        preview_audio.place(x = (6 * window_design.spacer) + width, y = (4 * window_design.spacer) + (audio_listbox_height_stratified), width = width, height = small_height)
-
         # Right Hand Buttons
+        preview_audio: Button = Button(window_controls.audio_editor_page, text = "Preview Audio", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.play_audio)
+        preview_audio.place(x = (6 * window_design.spacer) + width, y = (4 * window_design.spacer) + (5 * small_height), width = width, height = small_height)
+
         create_audio_button: Button = Button(window_controls.audio_editor_page, text = "Create Audio", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.create_audio)
-        create_audio_button.place(x = (6 * window_design.spacer) + width, y = (4 * window_design.spacer) + (audio_listbox_height_stratified) + (1 * (window_design.spacer + small_height)), width = width, height = small_height)
+        create_audio_button.place(x = (6 * window_design.spacer) + width, y = (4 * window_design.spacer) + (5 * small_height) + (1 * (window_design.spacer + small_height)), width = width, height = small_height)
 
         update_audio_button: Button = Button(window_controls.audio_editor_page, text = "Update Audio", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.update_audio)
-        update_audio_button.place(x = (6 * window_design.spacer) + width, y = (4 * window_design.spacer) + (audio_listbox_height_stratified) + (2 * (window_design.spacer + small_height)), width = width, height = small_height)
+        update_audio_button.place(x = (6 * window_design.spacer) + width, y = (4 * window_design.spacer) + (5 * small_height) + (2 * (window_design.spacer + small_height)), width = width, height = small_height)
 
         clear_button: Button = Button(window_controls.audio_editor_page, text = "Clear Audio", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.clear_audio_selector)
-        clear_button.place(x = (6 * window_design.spacer) + width, y = (4 * window_design.spacer) + (audio_listbox_height_stratified) + (3 * (window_design.spacer + small_height)), width = width, height = small_height)
+        clear_button.place(x = (6 * window_design.spacer) + width, y = (4 * window_design.spacer) + (5 * small_height) + (3 * (window_design.spacer + small_height)), width = width, height = small_height)
+
+        delete_audio_button: Button = Button(window_controls.audio_editor_page, text = "Delete Audio", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.delete_audio)
+        delete_audio_button.place(x = (6 * window_design.spacer) + width, y = (4 * window_design.spacer) + (5 * small_height) + (4 * (window_design.spacer + small_height)), width = width, height = small_height)
 
         # Left Hand Buttons
         select_audio_button: Button = Button(window_controls.audio_editor_page, text = "Select Audio", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.select_audio)
-        select_audio_button.place(x = 2 * window_design.spacer, y = (4 * window_design.spacer) + (audio_listbox_height_stratified), width = width, height = small_height)
-
-        delete_audio_button: Button = Button(window_controls.audio_editor_page, text = "Delete Audio", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.delete_audio)
-        delete_audio_button.place(x = 2 * window_design.spacer, y = (4 * window_design.spacer) + (audio_listbox_height_stratified) + (1 * (window_design.spacer + small_height)), width = width, height = small_height)
+        select_audio_button.place(x = (2 * window_design.spacer), y = (4 * window_design.spacer) + (5 * small_height) + (2 * (window_design.spacer + small_height)), width = width, height = small_height)
 
         back_button: Button = Button(window_controls.audio_editor_page, text = "Back", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.go_back)
-        back_button.place(x = 2 * window_design.spacer, y = (4 * window_design.spacer) + (audio_listbox_height_stratified) + (2 * (window_design.spacer + small_height)), width = width, height = small_height)
+        back_button.place(x = (2 * window_design.spacer), y = (4 * window_design.spacer) + (5 * small_height) + (3 * (window_design.spacer + small_height)), width = width, height = small_height)
 
         exit_button: Button = Button(window_controls.audio_editor_page, text = "Exit", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.kill_program)
-        exit_button.place(x = 2 * window_design.spacer, y = (4 * window_design.spacer) + (audio_listbox_height_stratified) + (3 * (window_design.spacer + small_height)), width = width, height = small_height)
+        exit_button.place(x = (2 * window_design.spacer), y = (4 * window_design.spacer) + (5 * small_height) + (4 * (window_design.spacer + small_height)), width = width, height = small_height)
 
     def select_audio() -> None:
         window_controls.selected_audio = common_data.audio_list[window_controls.audio_listbox.curselection()[0]]
@@ -1040,27 +1032,22 @@ class window_controls:
             window_controls.place_answer_input(i)
             window_controls.answer_colours.append([StringVar(), StringVar()])
 
-
         # Hint and Fun Fact Entry (Single Width because this is quite tall)
 
-        hint_y_value: int = (6 * window_design.spacer) + (10 * unit) + (2 * (window_design.spacer + large_height))
-
         fun_fact_header: Label = Label(window_controls.create_question_page, text = "Enter Fun Fact", bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
-        fun_fact_header.place(x = (2 * window_design.spacer), y = hint_y_value, width = width, height = small_height)
+        fun_fact_header.place(x = (10 * window_design.spacer) + (2 * width), y = (2 * window_design.spacer), width = width, height = small_height)
 
         window_controls.enter_fun_fact = Entry(window_controls.create_question_page, bg = entry_colours[0].colour_code, fg = entry_colours[1].colour_code, font = window_design.main_font)
-        window_controls.enter_fun_fact.place(x = (2 * window_design.spacer), y = hint_y_value + unit, width = width, height = small_height)
+        window_controls.enter_fun_fact.place(x = (10 * window_design.spacer) + (2 * width), y = (2 * window_design.spacer) + unit, width = width, height = small_height)
 
         hint_header: Label = Label(window_controls.create_question_page, text = "Enter Question Hint", bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
-        hint_header.place(x = (6 * window_design.spacer) + width, y = hint_y_value, width = width, height = small_height)
+        hint_header.place(x = (14 * window_design.spacer) + (3 * width), y = (2 * window_design.spacer), width = width, height = small_height)
 
         window_controls.enter_hint = Entry(window_controls.create_question_page, bg = entry_colours[0].colour_code, fg = entry_colours[1].colour_code, font = window_design.main_font)
-        window_controls.enter_hint.place(x = (6 * window_design.spacer) + width, y = hint_y_value + unit, width = width, height = small_height)
+        window_controls.enter_hint.place(x = (14 * window_design.spacer) + (3 * width), y = (2 * window_design.spacer) + unit, width = width, height = small_height)
 
 
         # Question Correct / Incorrect Audio Selection
-
-        audio_y_value: int = hint_y_value + window_design.spacer + (2 * unit)
 
         window_controls.correct_audio = StringVar()
         window_controls.incorrect_audio = StringVar()
@@ -1071,35 +1058,34 @@ class window_controls:
             audio_name_list.append(audio_option.audio_name)
 
         correct_audio_header: Label = Label(window_controls.create_question_page, text = "Correct Answer Audio", bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
-        correct_audio_header.place(x = (2 * window_design.spacer), y = audio_y_value, width = width, height = small_height)
+        correct_audio_header.place(x = (10 * window_design.spacer) + (2 * width), y = (3 * window_design.spacer) + (2 * unit), width = width, height = small_height)
 
         correct_audio_entry: ttk.Combobox = ttk.Combobox(window_controls.create_question_page, textvariable = window_controls.correct_audio)
         correct_audio_entry['values'] = audio_name_list
-        correct_audio_entry.place(x = (2 * window_design.spacer), y = audio_y_value + unit, width = width, height = small_height)
+        correct_audio_entry.place(x = (10 * window_design.spacer) + (2 * width), y = (3 * window_design.spacer) + (3 * unit), width = width, height = small_height)
 
         incorrect_audio_header: Label = Label(window_controls.create_question_page, text = "Incorrect Answer Audio", bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
-        incorrect_audio_header.place(x = (6 * window_design.spacer) + width, y = audio_y_value, width = width, height = small_height)
+        incorrect_audio_header.place(x = (14 * window_design.spacer) + (3 * width), y = (3 * window_design.spacer) + (2 * unit), width = width, height = small_height)
 
         incorrect_audio_entry: ttk.Combobox = ttk.Combobox(window_controls.create_question_page, textvariable = window_controls.incorrect_audio)
         incorrect_audio_entry['values'] = audio_name_list
-        incorrect_audio_entry.place(x = (6 * window_design.spacer) + width, y = audio_y_value + unit, width = width, height = small_height)
-
+        incorrect_audio_entry.place(x = (14 * window_design.spacer) + (3 * width), y = (3 * window_design.spacer) + (3 * unit), width = width, height = small_height)
 
         # Control Buttons
 
-        control_y_value: int = audio_y_value + window_design.spacer + (2 * unit)
-
-        window_controls.create_question_button = Button(window_controls.create_question_page, text = "Create Question", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.create_question)
-        window_controls.create_question_button.place(x = (2 * window_design.spacer), y = control_y_value, width = (4 * window_design.spacer) + (2 * width), height = small_height)
-
-        preview_question_button = Button(window_controls.create_question_page, text = "Preview Question", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font)#, command = window_controls.preview_question)
-        preview_question_button.place(x = (2 * window_design.spacer), y = control_y_value + unit, width = (4 * window_design.spacer) + (2 * width), height = small_height)
+        control_y_value: int = (5 * window_design.spacer) + (7 * (window_design.spacer + small_height)) + (window_design.spacer + large_height)
 
         back_button: Button = Button(window_controls.create_question_page, text = "Back", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = functools.partial(window_controls.edit_question_controller, "Edit Question"))
-        back_button.place(x = (2 * window_design.spacer), y = control_y_value + (window_design.spacer + (2 * unit)), width = width, height = small_height)
+        back_button.place(x = (2 * window_design.spacer), y = control_y_value, width = width, height = small_height)
 
         exit_button: Button = Button(window_controls.create_question_page, text = "Exit", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.kill_program)
-        exit_button.place(x = (6 * window_design.spacer) + width, y = control_y_value + (window_design.spacer + (2 * unit)), width = width, height = small_height)
+        exit_button.place(x = (6 * window_design.spacer) + width, y = control_y_value, width = width, height = small_height)
+    
+        preview_question_button = Button(window_controls.create_question_page, text = "Preview Question", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.preview_question)
+        preview_question_button.place(x = (10 * window_design.spacer) + (2 * width), y = control_y_value, width = width, height = small_height)
+
+        window_controls.create_question_button = Button(window_controls.create_question_page, text = "Create Question", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.create_question)
+        window_controls.create_question_button.place(x = (14 * window_design.spacer) + (3 * width), y = control_y_value, width = width, height = small_height)
 
     def place_answer_input(answer_number: int) -> None:
         window_colours: list[colour] = window_controls.convert_to_colours(window_controls.current_user.window_colours)
@@ -1111,42 +1097,23 @@ class window_controls:
         small_height: int = window_design.get_question_editor_small_height()
         large_height: int = window_design.get_question_editor_large_height()
 
-        row: int
-        column: int
-
         unit: int = (window_design.spacer + small_height)
 
-        r1: int = (4 * window_design.spacer) + (4 * unit)
-        r2: int = (5 * window_design.spacer) + (7 * unit) + (window_design.spacer + large_height)
+        y_value: int = (4 * window_design.spacer) + (4 * unit)
 
-        c1: int = (2 * window_design.spacer)
-        c2: int = (6 * window_design.spacer) + width
-
-        match answer_number + 1:
-            case 1:
-                row = r1
-                column = c1
-            case 2:
-                row = r1
-                column = c2
-            case 3:
-                row = r2
-                column = c1
-            case 4:
-                row = r2
-                column = c2
+        x_value: int = (2 * window_design.spacer) + (answer_number * ((4 * window_design.spacer) + width))
 
         enter_answer_label: Label = Label(window_controls.create_question_page, text = f"Enter Answer {answer_number + 1}", bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
-        enter_answer_label.place(x = column, y = row, width = width, height = small_height)
+        enter_answer_label.place(x = x_value, y = y_value, width = width, height = small_height)
 
         placed_entry: Entry = Entry(window_controls.create_question_page, bg = entry_colours[0].colour_code, fg = entry_colours[1].colour_code, font = window_design.main_font)
-        placed_entry.place(x = column, y = row + (1 * unit), width = width, height = small_height)
+        placed_entry.place(x = x_value, y = y_value + (1 * unit), width = width, height = small_height)
 
         placed_contrast: Label = Label(window_controls.create_question_page, text = "Colour Preview", bg = window_colours[1].colour_code, fg = window_colours[0].colour_code, font = window_design.main_font)
-        placed_contrast.place(x = column, y = row + (2 * unit), width = width, height = large_height)
+        placed_contrast.place(x = x_value, y = y_value + (2 * unit), width = width, height = large_height)
 
         select_colours_button: Button = Button(window_controls.create_question_page, text = "Choose Colours", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = functools.partial(window_controls.select_answer_colours, answer_number))
-        select_colours_button.place(x = column, y = row + (2 * unit) + (window_design.spacer + large_height), width = width, height = small_height)
+        select_colours_button.place(x = x_value, y = y_value + (2 * unit) + (window_design.spacer + large_height), width = width, height = small_height)
 
         window_controls.answer_details.append([placed_entry, placed_contrast])
 
@@ -1158,8 +1125,6 @@ class window_controls:
 
     def insert_question_data() -> None:
         window_controls.clear_question_editor()
-
-        print(len(window_controls.question_listbox.curselection()))
 
         if len(window_controls.question_listbox.curselection()) == 0:
             messagebox.showwarning("No Question Selected", "Please Select a Question")
@@ -1190,6 +1155,78 @@ class window_controls:
             window_controls.incorrect_audio.set(window_controls.selected_question.incorrect_audio)
 
             window_controls.create_question_button.configure(text = "Update Question", command = window_controls.update_question)
+
+    def preview_question() -> None:
+        window_controls.preview_question_page = window_controls.make_question_page_template_blank()
+        window_controls.preview_question_page.geometry(window_controls.calculate_preview_question_dimensions())
+
+        window_controls.preview_question_page.update()
+        window_controls.preview_question_page.deiconify()
+
+        button_colours = window_controls.convert_to_colours(window_controls.current_user.button_colours)
+
+        width: int = window_design.get_question_page_width()
+        small_height: int = window_design.get_question_page_small_height()
+        large_height: int = window_design.get_question_page_large_height()
+
+        close_button = Button(window_controls.preview_question_page, text = "Close", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.preview_question_page.destroy)
+        close_button.place(x = (2 * window_design.spacer), y = (3 * window_design.spacer) + (3 * (window_design.spacer + small_height)) + (2 * (window_design.spacer + large_height)), width = (2 * (window_design.spacer + width)), height = small_height)
+
+    def make_question_page_template_blank() -> Toplevel:
+        template_frame: Toplevel = Toplevel(window_controls.window)
+        template_frame.withdraw()
+
+        window_colours: list[colour] = window_controls.convert_to_colours(window_controls.current_user.window_colours)
+        label_colours: list[colour] = window_controls.convert_to_colours(window_controls.current_user.label_colours)
+        
+        width: int = window_design.get_question_page_width()
+        difficulty_width: int = window_design.get_question_page_difficulty_width()
+        small_height: int = window_design.get_question_page_small_height()
+        large_height: int = window_design.get_question_page_large_height()
+
+        template_frame.geometry(window_controls.calculate_setup_quiz_dimensions())
+        template_frame.config(bg = window_colours[0].colour_code)
+
+        question_number_label: Label = Label(template_frame, text = f"PREVIEW QUESTION", bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
+        question_number_label.place(x = (2 * window_design.spacer), y = (2 * window_design.spacer), width = width, height = small_height)
+
+        window_controls.current_score_label = Label(template_frame, text = f"Current Score: N/A", bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
+        window_controls.current_score_label.place(x = (4 * window_design.spacer) + width, y = (2 * window_design.spacer), width = width, height = small_height)
+
+        question_text_label: Label = Label(template_frame, text = f"Question:\n{window_controls.enter_question_text.get()}", bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
+        question_text_label.place(x = (2 * window_design.spacer), y = (3 * window_design.spacer) + (1 * (window_design.spacer + small_height)), width = (2 * (window_design.spacer + width)), height = (2 * small_height))
+
+        question_difficulty_label: Label = Label(template_frame, text = window_controls.question_difficulty.get(), bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
+        question_difficulty_label.place(x = (2 * window_design.spacer), y = (3 * window_design.spacer) + (1 * (window_design.spacer + small_height)), width = difficulty_width, height = small_height)
+
+        row_1: int = (3 * window_design.spacer) + (1 * (window_design.spacer + small_height)) + ((window_design.spacer + (2 * small_height)))
+        row_2: int = (3 * window_design.spacer) + (1 * (window_design.spacer + small_height)) + ((window_design.spacer + (2 * small_height))) + (window_design.spacer + large_height)
+
+        col_1: int = (2 * window_design.spacer)
+        col_2: int = (4 * window_design.spacer) + width
+
+        x: int
+        y: int
+
+        for i in range(len(window_controls.answer_details)):
+            match i:
+                case 0:
+                    x = col_1
+                    y = row_1
+                case 1:
+                    x = col_2
+                    y = row_1
+                case 2:
+                    x = col_1
+                    y = row_2
+                case 3:
+                    x = col_2
+                    y = row_2
+            
+            answer_button: Button = Button(template_frame, text = window_controls.answer_details[i][0].get(), bg = common_data.get_colour_from_name(window_controls.answer_colours[i][0].get()).colour_code, fg = common_data.get_colour_from_name(window_controls.answer_colours[i][1].get()).colour_code, font = window_design.main_font)#, command = functools.partial(window_controls.select_answer, question_number, i))
+            answer_button.place(x = x, y = y, width = width, height = large_height)
+
+        return template_frame
 
 
     # Question Editor Colour Handling
@@ -1290,7 +1327,7 @@ class window_controls:
         if window_controls.setup_quiz_page == None or not window_controls.setup_quiz_page.winfo_exists():
             window_controls.make_setup_quiz_page()
         else:
-            #window_controls.clear_setup_quiz_page()
+            window_controls.clear_setup_quiz()
             window_controls.setup_quiz_page.update()
             window_controls.setup_quiz_page.deiconify()
 
@@ -1356,12 +1393,15 @@ class window_controls:
     
     def select_quiz_length(chosen_length: str, selected_button: Button) -> None:
         if chosen_length == "Custom":
-            button_colours: list[colour] = window_controls.convert_to_colours(window_controls.current_user.button_colours)
+            if quiz_handler.quiz_difficulty == None:
+                messagebox.showwarning("No Difficulty Selected", "Please Select a Quiz Difficulty")
+            else:
+                button_colours: list[colour] = window_controls.convert_to_colours(window_controls.current_user.button_colours)
 
-            window_controls.reset_buttons(window_controls.quiz_length_buttons)
-            selected_button.configure(bg = button_colours[1].colour_code, fg = button_colours[0].colour_code)
+                window_controls.reset_buttons(window_controls.quiz_length_buttons)
+                selected_button.configure(bg = button_colours[1].colour_code, fg = button_colours[0].colour_code)
 
-            window_controls.get_custom_quiz_length()
+                window_controls.get_custom_quiz_length()
         else:
             desired_length: int
 
@@ -1414,7 +1454,6 @@ class window_controls:
         set_length_button: Button = Button(window_controls.set_length_window, text = "Set Quiz Length", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.set_custom_length)
         set_length_button.place(x = (2 * window_design.spacer), y = (0 * window_design.spacer) + (3 * (window_design.spacer + small_height)), width = width, height = small_height)
 
-
     def set_custom_length() -> None:
         quiz_handler.quiz_length = int(window_controls.quiz_length.get())
         window_controls.quiz_length_buttons[3].configure(text = f"Custom - {int(window_controls.quiz_length.get())} Questions")
@@ -1422,6 +1461,7 @@ class window_controls:
 
     def start_quiz() -> None:
         if not (quiz_handler.quiz_length == None and quiz_handler.quiz_difficulty == None):
+            window_controls.setup_quiz_page.withdraw()
             quiz_handler.generate_quiz()
             window_controls.display_question_controller(1)
         else:
@@ -1434,8 +1474,6 @@ class window_controls:
     # Complete Quiz Functions
 
     def display_question_controller(question_number: int) -> None:
-        #window_controls.setup_quiz_page.deiconify()
-
         window_controls.attempts_at_question = 0
         window_controls.current_selected_answer = None
 
@@ -1647,12 +1685,26 @@ class window_controls:
             quiz_handler.current_score += points_awarded
             window_controls.current_score_label.configure(text = f"Current Score: {quiz_handler.current_score}")
 
+            audio_path: str = os.path.join(common_data.get_audio_folder(), common_data.get_audio_from_name(quiz_handler.question_list[question_number - 1].correct_audio))
+            
+            if os.path.exists(audio_path):
+                pygame.mixer.music.load(audio_path)
+                pygame.mixer.music.play(loops = 0)
+
             quiz_handler.question_number += 1
             window_controls.next_question(question_number, "Fun Fact")
         else:
             window_controls.answer_buttons[window_controls.current_selected_answer.answer_index].configure(bg = window_design.incorrect_answer_colours[0].colour_code,fg = window_design.incorrect_answer_colours[1].colour_code)
+            window_controls.current_selected_answer = None
+
+            audio_path: str = os.path.join(common_data.get_audio_folder(), common_data.get_audio_from_name(quiz_handler.question_list[question_number - 1].incorrect_audio))
+            
+            if os.path.exists(audio_path):
+                pygame.mixer.music.load(audio_path)
+                pygame.mixer.music.play(loops = 0)
 
             if window_controls.attempts_at_question == 2:
+                quiz_handler.question_number += 1
                 quiz_handler.question_list[question_number - 1].question_answered = True
                 window_controls.next_question(question_number, "Hint")
 
@@ -1664,8 +1716,6 @@ class window_controls:
                 popup_string = quiz_handler.question_list[question_number - 1].fun_fact
             case "Hint":
                 popup_string = quiz_handler.question_list[question_number - 1].hint
-        
-        print(popup_string)
 
         label_colours: list[colour] = window_controls.convert_to_colours(window_controls.current_user.label_colours)
         
@@ -1673,20 +1723,91 @@ class window_controls:
         small_height: int = window_design.get_question_page_small_height()
         large_height: int = window_design.get_question_page_large_height()
 
-        y_value: int = (4 * window_design.spacer) + (1 * (window_design.spacer + small_height)) + ((window_design.spacer + (2 * small_height))) + (large_height / 2)
+        y_value: int = (3 * window_design.spacer) + (1 * (window_design.spacer + small_height)) + ((window_design.spacer + (2 * small_height))) + (large_height / 2)
         display_width: int = (2 * (window_design.spacer + width))
-        display_height: int = (2 * window_design.spacer) + large_height
+        display_height: int = (1 * window_design.spacer) + large_height
 
         hint_fact_output: Label = Label(window_controls.main_quiz_page, text = popup_string, bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
         hint_fact_output.place(x = (2 * window_design.spacer), y = y_value, width = display_width, height = display_height)
 
-        # Display Hint or Fact
-        # Go To Next Question or End Quiz and Go To Score Page
-
         if question_number + 1 > quiz_handler.quiz_length:
-            window_controls.select_answer_button.configure(text = "End Quiz", command = window_controls.main_quiz_page.destroy)
+            window_controls.select_answer_button.configure(text = "End Quiz", command = window_controls.make_quiz_end_page)
         else:
             window_controls.select_answer_button.configure(text = "Next Question", command = functools.partial(window_controls.display_question_controller, question_number + 1))
+
+    def make_quiz_end_page() -> None:
+        window_controls.main_quiz_page.destroy()
+        window_controls.quiz_end_page = Toplevel(window_controls.window)
+
+        window_colours: list[colour] = window_controls.convert_to_colours(window_controls.current_user.window_colours)
+        label_colours: list[colour] = window_controls.convert_to_colours(window_controls.current_user.label_colours)
+        button_colours: list[colour] = window_controls.convert_to_colours(window_controls.current_user.button_colours)
+        
+        width: int = window_design.get_quiz_over_width()
+        small_height: int = window_design.get_quiz_over_small_height()
+        large_height: int = window_design.get_quiz_over_large_height()
+        quiz_over_font: tuple[str, int] = window_design.get_quiz_over_font()
+
+        window_controls.quiz_end_page.geometry(window_controls.calculate_end_quiz_dimensions())
+        window_controls.quiz_end_page.config(bg = window_colours[0].colour_code)
+
+        window_controls.update_user_details()
+
+        quiz_over_label: Label = Label(window_controls.quiz_end_page, text = "Quiz Over!", bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = quiz_over_font)
+        quiz_over_label.place(x = (2 * window_design.spacer), y = (2 * window_design.spacer), width = (4 * window_design.spacer) + (2 * width), height = large_height)
+
+        score_percentage: float = (quiz_handler.current_score / quiz_handler.quiz_length) * 100
+
+        score_label: Label = Label(window_controls.quiz_end_page, text = f"Your Score: {quiz_handler.current_score}\nPercentage: {score_percentage}%", bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
+        score_label.place(x = (2 * window_design.spacer), y = (2 * window_design.spacer) + (1 * (window_design.spacer + large_height)), width = (4 * window_design.spacer) + (2 * width), height = large_height)
+
+        message_label: Label = Label(window_controls.quiz_end_page, bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
+        message_label.place(x = (2 * window_design.spacer), y = (2 * window_design.spacer) + (2 * (window_design.spacer + large_height)), width = (4 * window_design.spacer) + (2 * width), height = large_height)
+
+        end_quiz_button: Button = Button(window_controls.quiz_end_page, bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font)
+        end_quiz_button.place(x = (2 * window_design.spacer), y = (2 * window_design.spacer) + (3 * (window_design.spacer + large_height)), width = (4 * window_design.spacer) + (2 * width), height = small_height)
+
+        exit_button_y_value: int = (2 * window_design.spacer) + (3 * (window_design.spacer + large_height)) + (window_design.spacer + small_height)
+
+        if score_percentage == 100:
+            message_label.configure(text = "Well Done, you got all the Questions Correct!")
+            end_quiz_button.configure(text = "Finish Quiz", command = window_controls.end_quiz)
+        elif score_percentage >= 90:
+            message_label.configure(text = "Well Done! You didn't get all the questions correct, but you weren't far off!")
+            end_quiz_button.configure(text = "Finish Quiz", command = window_controls.end_quiz)
+        elif score_percentage >= 70:
+            message_label.configure(text = "Well Done! You didn't get all the questions correct,\nbut you weren't far off!")
+            end_quiz_button.configure(text = "Finish Quiz", command = window_controls.end_quiz)
+            
+            retake_quiz_button: Button = Button(window_controls.quiz_end_page, text = "Retake Quiz", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.retake_quiz)
+            retake_quiz_button.place(x = (2 * window_design.spacer), y = exit_button_y_value, width = (4 * window_design.spacer) + (2 * width), height = small_height)
+
+            exit_button_y_value += (window_design.spacer + small_height)
+            window_geometry: str = window_controls.calculate_end_quiz_dimensions()
+            window_controls.quiz_end_page.geometry(f"{window_geometry.split('x')[0]}x{int(window_geometry.split('x')[1]) + (window_design.spacer + small_height)}")
+        else:
+            message_label.configure(text = "Well, that was interesting. Do that again.")
+            end_quiz_button.configure(text = "Retake Quiz", command = window_controls.retake_quiz)
+
+        exit_button: Button = Button(window_controls.quiz_end_page, text = "Exit", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.kill_program)
+        exit_button.place(x = (2 * window_design.spacer), y = exit_button_y_value, width = (4 * window_design.spacer) + (2 * width), height = small_height)
+
+    def retake_quiz() -> None:
+        window_controls.quiz_end_page.withdraw()
+        window_controls.clear_setup_quiz()
+        window_controls.setup_quiz_controller()
+
+    def end_quiz() -> None:
+        window_controls.quiz_end_page.destroy()
+        window_controls.user_account_controller("")
+
+    def update_user_details() -> None:
+        window_controls.current_user.previous_scores.append(quiz_handler.current_score)
+
+        if quiz_handler.current_score > window_controls.current_user.high_score:
+            window_controls.current_user.high_score = quiz_handler.current_score
+
+        write_json_file(os.path.join(common_data.get_user_folder(), f"{window_controls.current_user.user_id}.json"), window_controls.current_user.make_dictionary())
 
 
     # Clear Pages
@@ -1725,7 +1846,7 @@ class window_controls:
         window_controls.audio_listbox.selection_clear(0, 'end')
 
     def clear_question_selector() -> None:
-        window_controls.question_listbox.delete(0, END)
+        #window_controls.question_listbox.delete(0, END)
         window_controls.delete_question.configure(text = "Discard Question")
 
     def clear_question_editor() -> None:
@@ -1733,11 +1854,25 @@ class window_controls:
 
         window_controls.enter_question_text.delete(0, len(window_controls.enter_question_text.get()))
 
+        window_controls.enter_fun_fact.delete(0, len(window_controls.enter_fun_fact.get()))
+        window_controls.enter_hint.delete(0, len(window_controls.enter_hint.get()))
+
+        window_controls.question_difficulty.set("")
+        window_controls.correct_answer.set("")
+        window_controls.correct_audio.set("")
+        window_controls.incorrect_audio.set("")
+
         for answer_details_pair in window_controls.answer_details:
             answer_details_pair[0].delete(0, len(answer_details_pair[0].get()))
-            answer_details_pair[1].configure(bg = window_colours[1].colour_code, fg = window_colours[0].colour_code)
+            answer_details_pair[1].configure(text = "Colour Preview", bg = window_colours[1].colour_code, fg = window_colours[0].colour_code)
 
-        window_controls.create_question_button.configure(text = "Create Question")#, command = window_controls.create_question)
+        window_controls.create_question_button.configure(text = "Create Question", command = window_controls.create_question)
+
+    def clear_setup_quiz() -> None:
+        window_controls.quiz_length = None
+        window_controls.reset_buttons(window_controls.difficulty_buttons)
+        window_controls.reset_buttons(window_controls.quiz_length_buttons)
+        window_controls.quiz_length_buttons[len(window_controls.quiz_length_buttons) - 1].configure(text = "Custom")
 
 
     # Dimension Calculations
@@ -1749,70 +1884,87 @@ class window_controls:
         return f"{page_width}x{page_height}"
 
     def calculate_new_create_account_dimensions() -> str:
-        small_height: int = window_design.get_create_account_small_height()
         page_width: int = (8 * window_design.spacer) + (2 * window_design.get_create_account_width())
-        page_height: int = (7 * window_design.spacer) + (4 * small_height) + (4 * ((window_design.spacer) + small_height))
+        page_height: int = (7 * window_design.spacer) + (4 * window_design.get_create_account_small_height()) + (4 * ((window_design.spacer) + window_design.get_create_account_small_height()))
+        
         return f"{page_width}x{page_height}"
     
     def calculate_colour_selector_dimensions() -> str:
         page_width: int = (8 * window_design.spacer) + (2 * window_design.get_choose_colours_width())
         page_height: int = (7 * window_design.spacer) + (17 * (window_design.spacer + window_design.get_choose_colours_small_height())) + (2 * (window_design.spacer + window_design.get_choose_colours_large_height()))
+        
         return f"{page_width}x{page_height}"
 
     def calculate_user_account_dimensions() -> str:
         page_width: int = (6 * window_design.spacer) + (2 * window_design.user_account_small_width)
         page_height: int = (2 * window_design.spacer) + (7 * ((2 * window_design.spacer) + window_design.user_account_small_height))
+        
         return f"{page_width}x{page_height}"
 
     def calculate_view_account_dimensions() -> str:
         page_width: int = (4 * window_design.spacer) + window_design.view_account_small_width
-        scores_listbox_height: int = int(window_design.view_account_listbox_item_height * window_design.view_account_listbox_visible_items)
-        page_height: int = (3 * window_design.spacer) + (4 * (window_design.spacer + window_design.view_account_small_height)) + (window_design.spacer + (scores_listbox_height + (5 - (scores_listbox_height % 5))))
+        page_height: int = (9 * window_design.spacer) + (4 * (window_design.spacer + window_design.view_account_small_height)) + (7 * window_design.get_view_account_small_height())
 
         return f"{page_width}x{page_height}"
 
     def calculate_colour_editor_dimensions() -> str:
         page_width: int = (8 * window_design.spacer) + (2 * window_design.get_colour_editor_width())
-        listbox_height: int = int(window_design.colour_editor_listbox_item_height * window_design.colour_editor_listbox_visible_items)
-        page_height: int = (5 * window_design.spacer) + (listbox_height) + (5 - (listbox_height % 5)) + (4 * (window_design.spacer + window_design.get_colour_editor_small_height()))
+        page_height: int = (6 * window_design.spacer) + (8 * (window_design.spacer + window_design.get_colour_editor_small_height())) + (window_design.spacer + window_design.get_colour_editor_large_height())
 
         return f"{page_width}x{page_height}"
 
     def calculate_audio_editor_dimensions() -> str:
         page_width: int = (8 * window_design.spacer) + (2 * window_design.get_audio_editor_width())
-        listbox_height: int = int(window_design.audio_editor_listbox_item_height * window_design.audio_editor_listbox_visible_items)
-        page_height: int = (5 * window_design.spacer) + (listbox_height) + (5 - (listbox_height % 5)) + (4 * (window_design.spacer + window_design.get_audio_editor_small_height()))
+        page_height: int = (5 * window_design.spacer) + (5 * window_design.get_audio_editor_small_height()) + (5 * (window_design.spacer + window_design.get_audio_editor_small_height()))
 
         return f"{page_width}x{page_height}"
 
     def calculate_select_question_dimensions() -> str:
         page_width: int = (8 * window_design.spacer) + window_design.get_question_list_width() + window_design.get_question_list_button_width()
         page_height: int = (3 * window_design.spacer) + (6 * (window_design.spacer + window_design.get_question_list_small_height()))
+        
         return f"{page_width}x{page_height}"
 
     def calculate_edit_question_dimensions() -> str:
-        page_width: int = (8 * window_design.spacer) + (2 * window_design.question_editor_small_width)
-        page_height: int = (10 * window_design.spacer) + (17 * (window_design.spacer + window_design.question_editor_small_height)) + (2 * (window_design.spacer + window_design.question_editor_large_height))
+        page_width: int = (16 * window_design.spacer) + (4 * window_design.get_question_editor_width())
+        page_height: int = (6 * window_design.spacer) + (8 * (window_design.spacer + window_design.get_question_editor_small_height())) + (window_design.spacer + window_design.get_question_editor_large_height())
+        
         return f"{page_width}x{page_height}"
 
     def calculate_select_answer_colour_dimensions() -> str:
         page_width: int = (4 * window_design.spacer) + window_design.get_choose_answer_colours_width()
         page_height: int = (3 * window_design.spacer) + (8 * (window_design.spacer + window_design.get_choose_colours_small_height())) + (window_design.spacer + window_design.get_choose_colours_large_height())
+        
         return f"{page_width}x{page_height}"
 
     def calculate_setup_quiz_dimensions() -> str:
         page_width: int = (8 * window_design.spacer) + (2 * window_design.get_setup_quiz_width())
         page_height: int = (4 * window_design.spacer) + ((len(quiz_handler.quiz_lengths) + 4) * (window_design.spacer + window_design.get_setup_quiz_small_height()))
+        
         return f"{page_width}x{page_height}"
     
     def calculate_select_length_dimensions() -> str:
         page_width: int = (4 * window_design.spacer) + (window_design.get_setup_quiz_width())
         page_height: int = (1 * window_design.spacer) + (4 * (window_design.spacer + window_design.get_setup_quiz_small_height()))
+        
         return f"{page_width}x{page_height}"
 
     def calculate_view_question_dimensions() -> str:
         page_width: int = (6 * window_design.spacer) + (2 * window_design.get_question_page_width())
         page_height: int = (4 * window_design.spacer) + (5 * (window_design.spacer + window_design.get_question_page_small_height())) + (2 * (window_design.spacer + window_design.get_question_page_large_height()))
+        
+        return f"{page_width}x{page_height}"
+
+    def calculate_preview_question_dimensions() -> str:
+        page_width: int = (6 * window_design.spacer) + (2 * window_design.get_question_page_width())
+        page_height: int = (4 * window_design.spacer) + (4 * (window_design.spacer + window_design.get_question_page_small_height())) + (2 * (window_design.spacer + window_design.get_question_page_large_height()))
+        
+        return f"{page_width}x{page_height}"
+
+    def calculate_end_quiz_dimensions() -> str:
+        page_width: int = (8 * window_design.spacer) + (2 * window_design.get_quiz_over_width())
+        page_height: int = (3 * window_design.spacer) + (3 * (window_design.spacer + window_design.get_quiz_over_large_height())) + (2 * (window_design.spacer + window_design.get_quiz_over_small_height()))
+        
         return f"{page_width}x{page_height}"
 
 
@@ -1880,7 +2032,7 @@ class window_controls:
 
                 window_controls.button_back.set(window_controls.button_text.get())
                 window_controls.button_text.set(temp_colour)
-            case "Label":
+            case "Entry":
                 temp_colour: str = window_controls.entry_back.get()
 
                 window_controls.entry_back.set(window_controls.entry_text.get())
@@ -2086,8 +2238,6 @@ class window_controls:
 
         valid_audio_name: bool = window_controls.check_field(audio_name, 3, 30, False) and window_controls.unique_audio_name(audio_name, exempt_audio.audio_name)
         valid_audio_file: bool = window_controls.valid_audio_file(audio_file) and file_exists(os.path.join(common_data.get_audio_folder(), audio_file))
-
-        print(f"{window_controls.check_field(audio_file, 3, 30, False)}\n{window_controls.valid_audio_file(audio_file)}\n{file_exists(os.path.join(common_data.get_audio_folder(), audio_file))}")
         
         unique_audio_file: bool
         duplicate_audio: audio
@@ -2139,7 +2289,6 @@ class window_controls:
 
     def create_question() -> None:
         if window_controls.valid_question_details(""):
-            print("Tits")
 
             answer_list: list[dict] = []
 
@@ -2171,11 +2320,10 @@ class window_controls:
             append_file(common_data.get_usable_question_file(), (question_id + ".json"))
             write_json_file(os.path.join(common_data.get_usable_question_folder(), (question_id + ".json")), question_dictionary)
         else:
-            print("No Tits")
+            messagebox.showerror("Invalid Question Details", "Invalid Question Details Entered")
 
     def update_question() -> None:
         if window_controls.valid_question_details(window_controls.selected_question.question_text):
-            print("Boobs")
 
             window_controls.selected_question.question_text = window_controls.enter_question_text.get()
             window_controls.selected_question.question_difficulty = window_controls.question_difficulty.get()
@@ -2183,8 +2331,8 @@ class window_controls:
             window_controls.selected_question.fun_fact = window_controls.enter_fun_fact.get()
             window_controls.selected_question.hint = window_controls.enter_hint.get()
 
-            window_controls.correct_audio = window_controls.correct_audio.get()
-            window_controls.incorrect_audio = window_controls.incorrect_audio.get()
+            #window_controls.correct_audio = window_controls.correct_audio.get()
+            #window_controls.incorrect_audio = window_controls.incorrect_audio.get()
 
             for i in range(4):
                 window_controls.selected_question.answer_options[i].answer_text = window_controls.answer_details[i][0].get()
@@ -2202,8 +2350,8 @@ class window_controls:
 
             write_json_file(os.path.join(question_folder, f"{window_controls.selected_question.question_id}.json"), window_controls.selected_question.make_dictionary())
         else:
-            print("No Boobs")
-
+            messagebox.showerror("Invalid Question Details", "Invalid Question Details Entered")
+      
     def valid_question_details(exempt_question_text: str) -> bool:
         valid_question: bool = window_controls.check_field(window_controls.enter_question_text.get(), 3, 80, False) and window_controls.unique_question_text(window_controls.enter_question_text.get(), exempt_question_text)
         valid_difficulty: bool = window_controls.question_difficulty.get() in quiz_handler.difficulty_range
@@ -2241,10 +2389,6 @@ class window_controls:
         back_colour: colour = common_data.get_colour_from_name(window_controls.answer_colours[answer_index][0].get())
         text_colour: colour = common_data.get_colour_from_name(window_controls.answer_colours[answer_index][1].get())
 
-        print(answer_index)
-        print(f"Back Colour: {back_colour.colour_name}")
-        print(f"Text Colour: {text_colour.colour_name}\n")
-
         answer_ratio: float = window_controls.get_contrast_ratio(back_colour.luminance, text_colour.luminance)
         winans_ratio: float = window_controls.get_contrast_ratio(window_back_colour.luminance, back_colour.luminance)
 
@@ -2253,7 +2397,7 @@ class window_controls:
         valid_answer_ratio: bool = answer_ratio >= window_design.minimum_contrast_ratio
         valid_winans_ratio: bool = winans_ratio >= window_design.minimum_contrast_ratio
 
-        if valid_answer_text and valid_answer_ratio and valid_winans_ratio:
+        if valid_answer_text and valid_answer_ratio:# and valid_winans_ratio:
             return True
         else:
             messagebox.showerror("Invalid Answer Data", f"Answer {answer_index + 1} Details:\nAnswer Text: {valid_answer_text}\nAnswer Colour Ratio: {valid_answer_ratio}\n Valid Window Ratio: {valid_winans_ratio}")
@@ -2286,16 +2430,12 @@ class window_controls:
         else:
             new_id = discarded_id + 1
 
-        print(f"Q{str(new_id).rjust(3, "0")}")
         return f"Q{str(new_id).rjust(3, "0")}"
 
     def get_is_correct(answer_index: int) -> bool:
-        print(f"{answer_index}\n{answer_index + 1}\n{int(window_controls.correct_answer.get())}")
         if answer_index + 1 == int(window_controls.correct_answer.get()):
-            print("true")
             return True
         else:
-            print("false")
             return False
 
     def discard_question() -> None:
@@ -2494,7 +2634,7 @@ class window_controls:
                 window_controls.question_list_page.update()
                 window_controls.question_list_page.deiconify()
             case "Setup Quiz":
-#                window_controls.clear_setup_quiz()
+                window_controls.clear_setup_quiz()
                 window_controls.setup_quiz_page.update()
                 window_controls.setup_quiz_page.deiconify()
             case _:
@@ -2638,7 +2778,10 @@ class window_controls:
         if check_space and " " in check_string:
             return False
         
-        if re.findall("[/*-+<>:;'#@~,.`¬!£$%^&*()=]", check_string):
+        if "-" in check_string:
+            return False
+
+        if re.findall("[/+<>:;~,.`¬!£$%^&*()=]", check_string):
             return False
         
         return True
@@ -2687,242 +2830,3 @@ class window_controls:
 
     def kill_program() -> None:
         window_controls.window.destroy()
-
-
-    # Old Create Account Functions
-    
-    def calculate_old_create_account_dimensions() -> str:
-        page_width: int = (6 * window_design.spacer) + (2 * window_design.get_create_account_width())
-        page_height: int = (6 * window_design.spacer) + (13 * (window_design.spacer + window_design.get_create_account_small_height())) + (window_design.spacer + window_design.get_create_account_large_height())
-
-        return f"{page_width}x{page_height}"
-
-    def make_old_create_account_page() -> None:
-        window_controls.create_account_page = Toplevel(window_controls.window)
-
-        window_colours: list[colour] = window_design.get_window_colours()
-        button_colours: list[colour] = window_design.get_button_colours()
-        entry_colours: list[colour] = window_design.get_entry_colours()
-
-        width: int = window_design.get_create_account_width()
-        small_height: int = window_design.get_create_account_small_height()
-        large_height: int = window_design.get_create_account_large_height()
-
-        window_controls.create_account_page.geometry(window_controls.calculate_old_create_account_dimensions())
-        window_controls.create_account_page.config(bg = window_colours[0].colour_code)
-
-        # Enter Username
-        username_label: Label = Label(window_controls.create_account_page, text = "Username:", bg = window_colours[0].colour_code, fg = window_colours[1].colour_code, font = window_design.main_font)
-        username_label.place(x = (2 * window_design.spacer), y = (2 * window_design.spacer), width = width, height = small_height)
-
-        window_controls.enter_username = Entry(window_controls.create_account_page, bg = entry_colours[0].colour_code, fg = entry_colours[1].colour_code, font = window_design.main_font)
-        window_controls.enter_username.place(x = (2 * window_design.spacer), y = (2 * window_design.spacer) + (1 * (window_design.spacer + small_height)), width = width, height = small_height)
-
-        # Enter Password
-        password_label: Label = Label(window_controls.create_account_page, text = "Password:", bg = window_colours[0].colour_code, fg = window_colours[1].colour_code, font = window_design.main_font)
-        password_label.place(x = (4 * window_design.spacer) + width, y = (2 * window_design.spacer), width = width, height = small_height)
-
-        window_controls.enter_password = Entry(window_controls.create_account_page, bg = entry_colours[0].colour_code, fg = entry_colours[1].colour_code, font = window_design.main_font)
-        window_controls.enter_password.place(x = (4 * window_design.spacer) + width, y = (2 * window_design.spacer) + (1 * (window_design.spacer + small_height)), width = width, height = small_height)
-
-        colour_name_list: list[str] = []
-
-        for colour_option in common_data.get_colour_list():
-            colour_name_list.append(colour_option.colour_name)
-
-        # Choose Window Colours
-        window_colours_x_value: int = (2 * window_design.spacer)
-        window_colours_header: Label = Label(window_controls.create_account_page, text = "Select Window Colours:", bg = entry_colours[0].colour_code, fg = entry_colours[1].colour_code, font = window_design.main_font)
-        window_colours_header.place(x = window_colours_x_value, y = (4 * window_design.spacer) + (2 * (window_design.spacer + small_height)), width = width, height = small_height)
-
-        window_back_label: Label = Label(window_controls.create_account_page, text = "Select Background Colour:", bg = window_colours[0].colour_code, fg = window_colours[1].colour_code, font = window_design.main_font)
-        window_back_label.place(x = window_colours_x_value, y = (4 * window_design.spacer) + (3 * (window_design.spacer + small_height)), width = width, height = small_height)
-
-        window_controls.window_back = StringVar()
-        window_controls.select_window_back = ttk.Combobox(window_controls.create_account_page, textvariable = window_controls.window_back)
-        window_controls.select_window_back['values'] = colour_name_list
-        window_controls.select_window_back.current(common_data.get_colour_index_from_name(window_colours[0].colour_name))
-        window_controls.select_window_back.place(x = window_colours_x_value, y = (3 * window_design.spacer) + (4 * (window_design.spacer + small_height)), width = width, height = small_height)
-
-        window_text_label: Label = Label(window_controls.create_account_page, text = "Select Text Colour:", bg = window_colours[0].colour_code, fg = window_colours[1].colour_code, font = window_design.main_font)
-        window_text_label.place(x = window_colours_x_value, y = (3 * window_design.spacer) + (5 * (window_design.spacer + small_height)), width = width, height = small_height)
-
-        window_controls.window_text = StringVar()
-        window_controls.select_window_text = ttk.Combobox(window_controls.create_account_page, textvariable = window_controls.window_text)
-        window_controls.select_window_text['values'] = colour_name_list
-        window_controls.select_window_text.current(common_data.get_colour_index_from_name(window_colours[1].colour_name))
-        window_controls.select_window_text.place(x = window_colours_x_value, y = (2 * window_design.spacer) + (6 * (window_design.spacer + small_height)), width = width, height = small_height)
-
-        window_controls.window_colours_contrast = Label(window_controls.create_account_page, text = "Colour Contrast Ratio:\nN/A", bg = window_colours[1].colour_code, fg = window_colours[0].colour_code, font = window_design.main_font)
-        window_controls.window_colours_contrast.place(x = window_colours_x_value, y = (4 * window_design.spacer) + (7 * (window_design.spacer + small_height)), width = width, height = large_height)
-
-        calculate_window_ratio: Button = Button(window_controls.create_account_page, text = "Calculate Contrast Ratio", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = functools.partial(window_controls.set_contrast_ratio, "Window"))
-        calculate_window_ratio.place(x = window_colours_x_value, y = (4 * window_design.spacer) + (7 * (window_design.spacer + small_height)) + (window_design.spacer + large_height), width = width, height = small_height)
-
-        invert_window_colours: Button = Button(window_controls.create_account_page, text = "Invert Colours", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = functools.partial(window_controls.invert_colours, "Window"))
-        invert_window_colours.place(x = window_colours_x_value, y = (4 * window_design.spacer) + (8 * (window_design.spacer + small_height)) + (window_design.spacer + large_height), width = width, height = small_height)
-
-        # Choose Button Colours
-        button_colours_x_value: int = (4 * window_design.spacer) + width
-        window_colours_header: Label = Label(window_controls.create_account_page, text = "Select Window Colours:", bg = entry_colours[0].colour_code, fg = entry_colours[1].colour_code, font = window_design.main_font)
-        window_colours_header.place(x = button_colours_x_value, y = (4 * window_design.spacer) + (2 * (window_design.spacer + small_height)), width = width, height = small_height)
-
-        window_back_label: Label = Label(window_controls.create_account_page, text = "Select Background Colour:", bg = window_colours[0].colour_code, fg = window_colours[1].colour_code, font = window_design.main_font)
-        window_back_label.place(x = button_colours_x_value, y = (4 * window_design.spacer) + (3 * (window_design.spacer + small_height)), width = width, height = small_height)
-
-        window_controls.button_back = StringVar()
-        window_controls.select_button_back = ttk.Combobox(window_controls.create_account_page, textvariable = window_controls.button_back)
-        window_controls.select_button_back['values'] = colour_name_list
-        window_controls.select_button_back.current(common_data.get_colour_index_from_name(button_colours[0].colour_name))
-        window_controls.select_button_back.place(x = button_colours_x_value, y = (3 * window_design.spacer) + (4 * (window_design.spacer + small_height)), width = width, height = small_height)
-
-        window_text_label: Label = Label(window_controls.create_account_page, text = "Select Text Colour:", bg = window_colours[0].colour_code, fg = window_colours[1].colour_code, font = window_design.main_font)
-        window_text_label.place(x = button_colours_x_value, y = (3 * window_design.spacer) + (5 * (window_design.spacer + small_height)), width = width, height = small_height)
-
-        window_controls.button_text = StringVar()
-        window_controls.select_button_text = ttk.Combobox(window_controls.create_account_page, textvariable = window_controls.button_text)
-        window_controls.select_button_text['values'] = colour_name_list
-        window_controls.select_button_text.current(common_data.get_colour_index_from_name(button_colours[1].colour_name))
-        window_controls.select_button_text.place(x = button_colours_x_value, y = (2 * window_design.spacer) + (6 * (window_design.spacer + small_height)), width = width, height = small_height)
-
-        window_controls.button_colours_contrast = Label(window_controls.create_account_page, text = "Colour Contrast Ratio:\nN/A", bg = window_colours[1].colour_code, fg = window_colours[0].colour_code, font = window_design.main_font)
-        window_controls.button_colours_contrast.place(x = button_colours_x_value, y = (4 * window_design.spacer) + (7 * (window_design.spacer + small_height)), width = width, height = large_height)
-
-        calculate_window_ratio: Button = Button(window_controls.create_account_page, text = "Calculate Contrast Ratio", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = functools.partial(window_controls.old_set_contrast_ratio, "Button"))
-        calculate_window_ratio.place(x = button_colours_x_value, y = (4 * window_design.spacer) + (7 * (window_design.spacer + small_height)) + (window_design.spacer + large_height), width = width, height = small_height)
-
-        invert_window_colours: Button = Button(window_controls.create_account_page, text = "Invert Colours", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = functools.partial(window_controls.old_invert_colours, "Button"))
-        invert_window_colours.place(x = button_colours_x_value, y = (4 * window_design.spacer) + (8 * (window_design.spacer + small_height)) + (window_design.spacer + large_height), width = width, height = small_height)
-
-        randomise_colours_button: Button = Button(window_controls.create_account_page, text = "Randomise Colours", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.old_randomise_colours)
-        randomise_colours_button.place(x = window_colours_x_value, y = (4 * window_design.spacer) + (9 * (window_design.spacer + small_height)) + (window_design.spacer + large_height), width = 2 * (window_design.spacer + width), height = small_height)
-
-        # Controls
-        control_row: int = (5 * window_design.spacer) + (10 * (window_design.spacer + small_height)) + (window_design.spacer + large_height)
-
-        create_account_button: Button = Button(window_controls.create_account_page, text = "Create Account", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.create_account)
-        create_account_button.place(x = (2 * window_design.spacer), y = control_row, width = 2 * (window_design.spacer + width), height = small_height)
-
-        control_row_2: int = control_row + (window_design.spacer + small_height)
-
-        clear_button: Button = Button(window_controls.create_account_page, text = "Clear", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.clear_create_account_page)
-        clear_button.place(x = (2 * window_design.spacer), y = control_row_2, width = 2 * (window_design.spacer + width), height = small_height)
-
-        back_button: Button = Button(window_controls.create_account_page, text = "Back", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.go_back)
-        back_button.place(x = (2 * window_design.spacer), y = control_row_2 + (window_design.spacer + small_height), width = width, height = small_height)
-
-        exit_button: Button = Button(window_controls.create_account_page, text = "Exit", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.kill_program)
-        exit_button.place(x = (4 * window_design.spacer) + width, y = control_row_2 + (window_design.spacer + small_height), width = width, height = small_height)
-
-
-
-"""
-    def choose_colour_pair(colour_pair: str) -> list[StringVar]:
-        colour_name_list: list[str] = []
-
-        for colour_option in common_data.get_colour_list():
-            colour_name_list.append(colour_option.colour_name)
-
-        window_colours: list[colour] = window_design.get_window_colours()
-        label_colours: list[colour] = window_design.get_label_colours()
-        button_colours: list[colour] = window_design.get_button_colours()
-        entry_colours: list[colour] = window_design.get_entry_colours()
-
-        width: int = window_design.get_choose_colours_width()
-        small_height: int = window_design.get_choose_colours_small_height()
-        large_height: int = window_design.get_choose_colours_large_height()
-
-        x_value: int
-        y_value: int
-
-        set_back: str
-        set_text: str
-
-        column_1: int = (2 * window_design.spacer)
-        column_2: int = (6 * window_design.spacer) + width
-
-        row_1: int = (4 * window_design.spacer) + small_height
-        row_2: int = (5 * window_design.spacer) + (8 * (window_design.spacer + small_height)) + (window_design.spacer + large_height)
-
-        match colour_pair:
-            case "Window":
-                x_value = column_1
-                y_value = row_1
-
-#                set_back = common_data.get_colour_index_from_name(window_colours[0].colour_name); set_text = common_data.get_colour_index_from_name(window_colours[1].colour_name)
-                set_back = window_colours[0].colour_name; set_text = window_colours[1].colour_name
-            case "Label":
-                x_value = column_2
-                y_value = row_1
-
-#                set_back = common_data.get_colour_index_from_name(label_colours[0].colour_name); set_text = common_data.get_colour_index_from_name(label_colours[1].colour_name)
-                set_back = label_colours[0].colour_name; set_text = label_colours[1].colour_name
-            case "Button":
-                x_value = column_1
-                y_value = row_2
-
-#                set_back = common_data.get_colour_index_from_name(button_colours[0].colour_name); set_text = common_data.get_colour_index_from_name(button_colours[1].colour_name)
-                set_back = button_colours[0].colour_name; set_text = button_colours[1].colour_name
-            case "Entry":
-                x_value = column_2
-                y_value = row_2
-
-#                set_back = common_data.get_colour_index_from_name(entry_colours[0].colour_name); set_text = common_data.get_colour_index_from_name(entry_colours[1].colour_name)
-                set_back = entry_colours[0].colour_name; set_text = entry_colours[1].colour_name
-
-        back_colour = StringVar()
-        text_colour = StringVar()
-
-        # Choose Colours
-        window_colours_header: Label = Label(window_controls.colour_selector_page, text = f"Select {colour_pair} Colours:", bg = entry_colours[0].colour_code, fg = entry_colours[1].colour_code, font = window_design.main_font)
-        window_colours_header.place(x = x_value, y = y_value, width = width, height = small_height)
-
-        window_back_label: Label = Label(window_controls.colour_selector_page, text = "Select Background Colour:", bg = window_colours[0].colour_code, fg = window_colours[1].colour_code, font = window_design.main_font)
-        window_back_label.place(x = x_value, y = y_value + (1 * (window_design.spacer + small_height)), width = width, height = small_height)
-
-        #window_controls.window_back = StringVar()
-        select_back = ttk.Combobox(window_controls.colour_selector_page, textvariable = back_colour)
-        select_back['values'] = colour_name_list
-        #back_colour.set(set_back)
-        #select_back.current(common_data.get_colour_index_from_name(set_back))
-        select_back.place(x = x_value, y = y_value + (2 * (window_design.spacer + small_height)) - window_design.spacer, width = width, height = small_height)
-
-        window_text_label: Label = Label(window_controls.colour_selector_page, text = "Select Text Colour:", bg = window_colours[0].colour_code, fg = window_colours[1].colour_code, font = window_design.main_font)
-        window_text_label.place(x = x_value, y = y_value + (3 * (window_design.spacer + small_height)) - window_design.spacer, width = width, height = small_height)
-
-        #window_controls.window_text = StringVar()
-        select_text = ttk.Combobox(window_controls.colour_selector_page, textvariable = text_colour)
-        select_text['values'] = colour_name_list
-        #text_colour.set(set_text)
-        #select_text.current(common_data.get_colour_index_from_name(set_text))
-        select_text.place(x = x_value, y = y_value + (4 * (window_design.spacer + small_height)) - (2 * window_design.spacer), width = width, height = small_height)
-
-        window_colour_contrast = Label(window_controls.colour_selector_page, text = "Colour Contrast Ratio:\nN/A", bg = window_colours[1].colour_code, fg = window_colours[0].colour_code, font = window_design.main_font)
-        window_colour_contrast.place(x = x_value, y = y_value + (5 * (window_design.spacer + small_height)), width = width, height = large_height)
-
-        calculate_window_ratio: Button = Button(window_controls.colour_selector_page, text = "Calculate Contrast Ratio", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = functools.partial(window_controls.set_contrast_ratio, window_colour_contrast, back_colour.get(), text_colour.get()))
-        calculate_window_ratio.place(x = x_value, y = y_value + (5 * (window_design.spacer + small_height)) + (window_design.spacer + large_height), width = width, height = small_height)
-
-        invert_window_colours: Button = Button(window_controls.colour_selector_page, text = "Invert Colours", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = functools.partial(window_controls.invert_colours, back_colour, text_colour))
-        invert_window_colours.place(x = x_value, y = y_value + (6 * (window_design.spacer + small_height)) + (window_design.spacer + large_height), width = width, height = small_height)
-
-        #return [back_colour, text_colour]
-
-    def old_randomise_colours() -> None:
-        colour_list: list[colour] = common_data.get_colour_list()
-        window_controls.window_back.set(colour_list[random.randint(1, len(colour_list)) - 1].colour_name)
-        window_controls.window_text.set(colour_list[random.randint(1, len(colour_list)) - 1].colour_name)
-        window_controls.button_back.set(colour_list[random.randint(1, len(colour_list)) - 1].colour_name)
-        window_controls.button_text.set(colour_list[random.randint(1, len(colour_list)) - 1].colour_name)
-
-    def old_clear_create_account_page() -> None:
-        window_controls.clear_login_page()
-
-        window_controls.window_back.set(window_design.get_default_window_colours()[0].colour_name)
-        window_controls.window_text.set(window_design.get_default_window_colours()[1].colour_name)
-        window_controls.button_back.set(window_design.get_default_button_colours()[0].colour_name)
-        window_controls.button_text.set(window_design.get_default_button_colours()[1].colour_name)
-
-        window_controls.window_colours_contrast.configure(text = f"Colour Contrast Ratio:\nN/A", bg = window_design.get_default_window_colours()[1].colour_code, fg = window_design.get_default_window_colours()[0].colour_code)
-        window_controls.button_colours_contrast.configure(text = f"Colour Contrast Ratio:\nN/A", bg = window_design.get_default_window_colours()[1].colour_code, fg = window_design.get_default_window_colours()[0].colour_code)
-"""
