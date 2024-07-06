@@ -109,6 +109,7 @@ class window_design:
     question_page_difficulty_width: int
     question_page_small_height: int
     question_page_large_height: int
+    question_page_difficulty_height: int
 
 
     # Quiz Over Page Sizes
@@ -423,6 +424,12 @@ class window_design:
 
     def get_question_page_large_height() -> int:
         return window_design.question_page_large_height
+
+    def set_question_page_difficulty_height(new_height: int) -> None:
+        window_design.question_page_difficulty_height = new_height
+
+    def get_question_page_difficulty_height() -> int:
+        return window_design.question_page_difficulty_height
 
 
     # Question Page Size Controls

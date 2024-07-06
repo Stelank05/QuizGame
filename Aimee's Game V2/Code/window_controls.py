@@ -959,8 +959,10 @@ class window_controls:
 
         window_controls.question_listbox.delete(0, END)
 
+        window_controls.sort_questions()
+
         for question_option in window_controls.current_question_list:
-            window_controls.question_listbox.insert('end', f"QD{question_option.question_difficulty} - {question_option.question_id}")
+            window_controls.question_listbox.insert('end', f"{question_option.question_id} - {question_option.question_difficulty}")
 
     def edit_question() -> None:
         window_controls.edit_question_controller("Question Editor")
@@ -1227,6 +1229,21 @@ class window_controls:
             answer_button.place(x = x, y = y, width = width, height = large_height)
 
         return template_frame
+
+    def sort_questions() -> None:
+        swap: bool
+        for i in range(len(window_controls.current_question_list) - 1):
+            swap = False
+
+            for j in range(len(window_controls.current_question_list) - i - 1):
+                if window_controls.current_question_list[j].question_id > window_controls.current_question_list[j + 1].question_id:
+                    swap = True
+                    temp_question: question = window_controls.current_question_list[j]
+                    window_controls.current_question_list[j] = window_controls.current_question_list[j + 1]
+                    window_controls.current_question_list[j + 1] = temp_question
+
+            if not swap:
+                break
 
 
     # Question Editor Colour Handling
@@ -1565,6 +1582,7 @@ class window_controls:
         difficulty_width: int = window_design.get_question_page_difficulty_width()
         small_height: int = window_design.get_question_page_small_height()
         large_height: int = window_design.get_question_page_large_height()
+        difficulty_height: int = window_design.get_question_page_difficulty_height()
 
         template_frame.geometry(window_controls.calculate_setup_quiz_dimensions())
         template_frame.config(bg = window_colours[0].colour_code)
@@ -1581,8 +1599,7 @@ class window_controls:
         question_text_label.place(x = (2 * window_design.spacer), y = (3 * window_design.spacer) + (1 * (window_design.spacer + small_height)), width = (2 * (window_design.spacer + width)), height = (2 * small_height))
 
         question_difficulty_label: Label = Label(template_frame, text = current_question.question_difficulty, bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
-        question_difficulty_label.place(x = (2 * window_design.spacer), y = (3 * window_design.spacer) + (1 * (window_design.spacer + small_height)), width = difficulty_width, height = small_height)
-
+        question_difficulty_label.place(x = (2 * window_design.spacer), y = (3 * window_design.spacer) + (1 * (window_design.spacer + small_height)), width = difficulty_width, height = difficulty_height)
         window_controls.answer_buttons.clear()
 
         row_1: int = (3 * window_design.spacer) + (1 * (window_design.spacer + small_height)) + ((window_design.spacer + (2 * small_height)))
@@ -2335,8 +2352,8 @@ class window_controls:
             window_controls.selected_question.fun_fact = window_controls.enter_fun_fact.get()
             window_controls.selected_question.hint = window_controls.enter_hint.get()
 
-            #window_controls.correct_audio = window_controls.correct_audio.get()
-            #window_controls.incorrect_audio = window_controls.incorrect_audio.get()
+            window_controls.selected_question.correct_audio = window_controls.correct_audio.get()
+            window_controls.selected_question.incorrect_audio = window_controls.incorrect_audio.get()
 
             for i in range(4):
                 window_controls.selected_question.answer_options[i].answer_text = window_controls.answer_details[i][0].get()

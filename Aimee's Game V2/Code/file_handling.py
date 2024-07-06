@@ -46,6 +46,5 @@ def read_json_file(file_path: str) -> dict:
 
     return return_dictionary
 
-
 def file_exists(file_path: str) -> bool:
     return os.path.exists(file_path)

@@ -123,7 +123,8 @@
                 "Widget Width" : 150,
                 "Widget Difficulty Width" : 60,
                 "Small Widget Height" : 25,
-                "Large Widget Height" : 40
+                "Large Widget Height" : 40,
+                "Widget Difficulty Height" : 20
             }
         ],
 
@@ -133,7 +134,7 @@
                 "Widget Width" : 150,
                 "Small Widget Height" : 25,
                 "Large Widget Height" : 40,
-                "Font Type" : "calibri",
+                "Font Type" : "comic sans",
                 "Font Size" : 18
             }
         ]

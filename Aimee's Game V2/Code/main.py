@@ -1,6 +1,6 @@
 """
-Made by Stephen Lankshear in about a Month because he was bored after University Year 1 Finished
-And also because he thought it'd be funny to make a V2 because V1 was so bad, and also go "surprise" to Aimee when I'm done
+Made by Stephen Lankshear in about a Month and a bit because he was bored after University Year 1 Finished
+And also because he thought it'd be funny to make a V2 because V1 wasn't so good
 """
 
 import os
@@ -117,6 +117,7 @@ def load_window_data() -> None:
     window_design.set_question_page_difficulty_width(window_data["Question Page Sizes"][0]["Widget Difficulty Width"])
     window_design.set_question_page_small_height(window_data["Question Page Sizes"][0]["Small Widget Height"])
     window_design.set_question_page_large_height(window_data["Question Page Sizes"][0]["Large Widget Height"])
+    window_design.set_question_page_difficulty_height(window_data["Question Page Sizes"][0]["Widget Difficulty Height"])
 
     # Setup Quiz Window Details
     window_design.set_quiz_over_width(window_data["Quiz Over Page Sizes"][0]["Widget Width"])
