@@ -1524,6 +1524,9 @@ class window_controls:
         window_controls.select_answer_button = Button(window_controls.main_quiz_page, text = "Next Question", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = functools.partial(window_controls.display_question_controller, question_number + 1))
         window_controls.select_answer_button.place(x = (2 * window_design.spacer), y = start_height, width = (2 * (window_design.spacer + width)), height = small_height)
 
+        if question_number == quiz_handler.quiz_length:
+            window_controls.select_answer_button.configure(text = "End Quiz", command = window_controls.make_quiz_end_page)
+
         if question_number != quiz_handler.question_number - 1:
             window_controls.select_answer_button.place(x = (4 * window_design.spacer) + width, width = width)
 
@@ -1734,6 +1737,7 @@ class window_controls:
             window_controls.select_answer_button.configure(text = "End Quiz", command = window_controls.make_quiz_end_page)
         else:
             window_controls.select_answer_button.configure(text = "Next Question", command = functools.partial(window_controls.display_question_controller, question_number + 1))
+
 
     def make_quiz_end_page() -> None:
         window_controls.main_quiz_page.destroy()
@@ -2317,8 +2321,8 @@ class window_controls:
             }
 
             common_data.add_usable_question(question(question_dictionary))
-            append_file(common_data.get_usable_question_file(), (question_id + ".json"))
-            write_json_file(os.path.join(common_data.get_usable_question_folder(), (question_id + ".json")), question_dictionary)
+            append_file(common_data.get_usable_questions_file(), (question_id + ".json"))
+            write_json_file(os.path.join(common_data.get_usable_questions_folder(), (question_id + ".json")), question_dictionary)
         else:
             messagebox.showerror("Invalid Question Details", "Invalid Question Details Entered")
 
@@ -2344,9 +2348,9 @@ class window_controls:
 
             match window_controls.selected_question_list:
                 case "Usable":
-                    question_folder = common_data.get_usable_question_folder()
+                    question_folder = common_data.get_usable_questions_folder()
                 case "Discarded":
-                    question_folder = common_data.get_discarded_question_folder()
+                    question_folder = common_data.get_discarded_questions_folder()
 
             write_json_file(os.path.join(question_folder, f"{window_controls.selected_question.question_id}.json"), window_controls.selected_question.make_dictionary())
         else:
@@ -2441,8 +2445,8 @@ class window_controls:
     def discard_question() -> None:
         window_controls.select_question()
 
-        delete_file(os.path.join(common_data.get_usable_question_folder(), f"{window_controls.selected_question.question_id}.json"))
-        write_json_file(os.path.join(common_data.get_discarded_question_folder(), f"{window_controls.selected_question.question_id}.json"), window_controls.selected_question.make_dictionary())
+        delete_file(os.path.join(common_data.get_usable_questions_folder(), f"{window_controls.selected_question.question_id}.json"))
+        write_json_file(os.path.join(common_data.get_discarded_questions_folder(), f"{window_controls.selected_question.question_id}.json"), window_controls.selected_question.make_dictionary())
 
         common_data.discard_question(window_controls.selected_question)
         window_controls.load_question_list(window_controls.selected_question_list)
@@ -2452,8 +2456,8 @@ class window_controls:
     def reinstate_question() -> None:
         window_controls.select_question()
 
-        delete_file(os.path.join(common_data.get_discarded_question_folder(), f"{window_controls.selected_question.question_id}.json"))
-        write_json_file(os.path.join(common_data.get_usable_question_folder(), f"{window_controls.selected_question.question_id}.json"), window_controls.selected_question.make_dictionary())
+        delete_file(os.path.join(common_data.get_discarded_questions_folder(), f"{window_controls.selected_question.question_id}.json"))
+        write_json_file(os.path.join(common_data.get_usable_questions_folder(), f"{window_controls.selected_question.question_id}.json"), window_controls.selected_question.make_dictionary())
 
         common_data.reinstate_question(window_controls.selected_question)
         window_controls.load_question_list(window_controls.selected_question_list)

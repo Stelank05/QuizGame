@@ -24,11 +24,11 @@ def setup() -> None:
     common_data.set_root_folder(os.getcwd())
     common_data.set_setup_folder(setup_data[0])
     common_data.set_audio_folder(setup_data[1])
-    common_data.set_usable_question_folder(setup_data[2])
-    common_data.set_discarded_question_folder(setup_data[3])
+    common_data.set_usable_questions_folder(setup_data[2])
+    common_data.set_discarded_questions_folder(setup_data[3])
     common_data.set_user_folder(setup_data[4])
-    common_data.set_usable_question_file(setup_data[5])
-    common_data.set_discarded_question_file(setup_data[6])
+    common_data.set_usable_questions_file(setup_data[5])
+    common_data.set_discarded_questions_file(setup_data[6])
     common_data.set_audio_file(setup_data[7])
     common_data.set_colour_file(setup_data[8])
     common_data.set_user_file(setup_data[9])
@@ -128,17 +128,18 @@ def load_audio_files() -> None:
     audio_data: list[str] = read_file(common_data.get_audio_file())
 
     for audio_file in audio_data:
-        common_data.add_audio(audio(audio_file.split(',')[0], audio_file.split(',')[1]))
+        if audio_file != "":
+            common_data.add_audio(audio(audio_file.split(',')[0], audio_file.split(',')[1]))
 
 def load_questions() -> None:
     load_usable_questions()
     load_discarded_questions()
 
 def load_usable_questions() -> None:
-    usable_question_files: list[str] = read_file(common_data.get_usable_question_file())
+    usable_question_files: list[str] = read_file(common_data.get_usable_questions_file())
 
     for new_usable_question in usable_question_files:
-        file_path: str = os.path.join(common_data.get_usable_question_folder(), new_usable_question)
+        file_path: str = os.path.join(common_data.get_usable_questions_folder(), new_usable_question)
 
         if os.path.exists(file_path) and os.path.isfile(file_path):
             usable_question_json: dict = read_json_file(file_path)
@@ -146,10 +147,10 @@ def load_usable_questions() -> None:
             common_data.add_usable_question(question(usable_question_json))
 
 def load_discarded_questions() -> None:
-    discarded_question_files: list[str] = read_file(common_data.get_discarded_question_file())
+    discarded_question_files: list[str] = read_file(common_data.get_discarded_questions_file())
 
     for new_discarded_question in discarded_question_files:
-        file_path: str = os.path.join(common_data.get_discarded_question_folder(), new_discarded_question)
+        file_path: str = os.path.join(common_data.get_discarded_questions_folder(), new_discarded_question)
 
         if os.path.exists(file_path) and os.path.isfile(file_path):
             discarded_question_json: dict = read_json_file(file_path)

@@ -95,31 +95,31 @@ class common_data:
 
     # Usable Question File Controls
 
-    def set_usable_question_file(new_file: str) -> None:
+    def set_usable_questions_file(new_file: str) -> None:
         common_data.usable_questions_file = new_file
 
-    def get_usable_question_file() -> str:
+    def get_usable_questions_file() -> str:
         return os.path.join(common_data.root_folder, common_data.setup_folder, common_data.usable_questions_file)
     
-    def set_usable_question_folder(new_folder: str) -> None:
+    def set_usable_questions_folder(new_folder: str) -> None:
         common_data.usable_questions_folder = new_folder
 
-    def get_usable_question_folder() -> str:
+    def get_usable_questions_folder() -> str:
         return os.path.join(common_data.root_folder, common_data.setup_folder, common_data.usable_questions_folder)
 
 
     # Discarded Question File Controls
 
-    def set_discarded_question_file(new_file: str) -> None:
+    def set_discarded_questions_file(new_file: str) -> None:
         common_data.discarded_questions_file = new_file
 
-    def get_discarded_question_file() -> str:
+    def get_discarded_questions_file() -> str:
         return os.path.join(common_data.root_folder, common_data.setup_folder, common_data.discarded_questions_file)
     
-    def set_discarded_question_folder(new_folder: str) -> None:
+    def set_discarded_questions_folder(new_folder: str) -> None:
         common_data.discarded_questions_folder = new_folder
 
-    def get_discarded_question_folder() -> str:
+    def get_discarded_questions_folder() -> str:
         return os.path.join(common_data.root_folder, common_data.setup_folder, common_data.discarded_questions_folder)
     
 

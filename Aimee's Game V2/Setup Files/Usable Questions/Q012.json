@@ -2,7 +2,7 @@
     "Question ID" : "Q012",
     "Question Difficulty" : "Hard",
 
-    "Question" : "How did people used to do Switch Cases (Match Statements) in Python, before 1.10?",
+    "Question" : "How did people used to do Switch Cases\n(Match Statements)in Python, before 1.10?",
 
     "Answers" : 
     [
@@ -21,7 +21,7 @@
             "Answer Index" : 2
         },
         {
-            "Answer Text" : "It's always had dictionaries",
+            "Answer Text" : "It's always had\nSwitch Cases",
             "Answer Back Colour" : "Dark Blue",
             "Answer Text Colour" : "White",
             "Correct Answer" : false,
@@ -36,7 +36,7 @@
         }
     ],
 
-    "Fun Fact" : "Because then you can use the key to find an Item and perform relevant code",
+    "Fun Fact" : "Because then you can use the key to find an Item\nand perform relevant code",
     "Hint" : "Big Book of Words",
 
     "Correct Audio" : "Piano",
