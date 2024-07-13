@@ -42,7 +42,8 @@ def load_colours() -> None:
     colour_data: list[str] = read_file(common_data.get_colour_file())
 
     for colour_option in colour_data:
-        common_data.add_colour(colour(colour_option.split(',')[0], colour_option.split(',')[1]))
+        if colour_option != "":
+            common_data.add_colour(colour(colour_option.split(',')[0], colour_option.split(',')[1]))
 
 def load_window_data() -> None:
     window_data: dict = read_json_file(common_data.get_window_design_file())
@@ -162,9 +163,10 @@ def load_users() -> None:
     user_files: list[str] = read_file(common_data.get_user_file())
 
     for new_user in user_files:
-        user_json: dict = read_json_file(os.path.join(common_data.get_user_folder(), new_user))
+        if new_user != "":
+            user_json: dict = read_json_file(os.path.join(common_data.get_user_folder(), new_user))
 
-        common_data.add_user(user(user_json))
+            common_data.add_user(user(user_json))
 
 
 setup()

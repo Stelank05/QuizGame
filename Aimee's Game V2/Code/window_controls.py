@@ -100,8 +100,8 @@ class window_controls:
     # View Account Data
 
     high_score_label: Label
-    average_score_label: Label
-    previous_scores_listbox: Listbox
+    average_score_label: Label = None
+    previous_scores_listbox: Listbox = None
 
     
     # Colour Editor Data
@@ -659,7 +659,6 @@ class window_controls:
         if window_controls.view_account_page == None or not window_controls.view_account_page.winfo_exists():
             window_controls.make_view_account_page()
         else:
-            window_controls.clear_colour_selector()
             window_controls.view_account_page.update()
             window_controls.view_account_page.deiconify()
 
@@ -679,7 +678,7 @@ class window_controls:
         window_controls.high_score_label = Label(window_controls.view_account_page, text = f"High Score: {window_controls.current_user.high_score}", bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
         window_controls.high_score_label.place(x = (2 * window_design.spacer), y = (2 * window_design.spacer), width = width, height = small_height)
 
-        window_controls.current_user.calculate_average_score()
+        window_controls.current_user.average_score = window_controls.current_user.calculate_average_score()
         window_controls.average_score_label = Label(window_controls.view_account_page, text = f"Average Score: {window_controls.current_user.average_score}", bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
         window_controls.average_score_label.place(x = (2 * window_design.spacer), y = (2 * window_design.spacer) + (1 * (window_design.spacer + small_height)), width = width, height = small_height)
 
@@ -904,6 +903,7 @@ class window_controls:
             window_controls.make_select_question_page()
         else:
             window_controls.clear_question_selector()
+            window_controls.question_listbox.delete(0, END)
             window_controls.question_list_page.update()
             window_controls.question_list_page.deiconify()
 
@@ -980,6 +980,7 @@ class window_controls:
                     window_controls.make_create_question_page()
                 else:
                     window_controls.clear_question_editor()
+                    window_controls.load_question_list(window_controls.selected_question_list)  
                     window_controls.create_question_page.update()
                     window_controls.create_question_page.deiconify()
 
@@ -1195,7 +1196,7 @@ class window_controls:
         window_controls.current_score_label = Label(template_frame, text = f"Current Score: N/A", bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
         window_controls.current_score_label.place(x = (4 * window_design.spacer) + width, y = (2 * window_design.spacer), width = width, height = small_height)
 
-        question_text_label: Label = Label(template_frame, text = f"Question:\n{window_controls.enter_question_text.get()}", bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
+        question_text_label: Label = Label(template_frame, text = f"Question:\n{window_controls.enter_question_text.get()}", bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font, wraplength = (2 * (window_design.spacer + width)))
         question_text_label.place(x = (2 * window_design.spacer), y = (3 * window_design.spacer) + (1 * (window_design.spacer + small_height)), width = (2 * (window_design.spacer + width)), height = (2 * small_height))
 
         question_difficulty_label: Label = Label(template_frame, text = window_controls.question_difficulty.get(), bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
@@ -1225,7 +1226,7 @@ class window_controls:
                     x = col_2
                     y = row_2
             
-            answer_button: Button = Button(template_frame, text = window_controls.answer_details[i][0].get(), bg = common_data.get_colour_from_name(window_controls.answer_colours[i][0].get()).colour_code, fg = common_data.get_colour_from_name(window_controls.answer_colours[i][1].get()).colour_code, font = window_design.main_font)#, command = functools.partial(window_controls.select_answer, question_number, i))
+            answer_button: Button = Button(template_frame, text = window_controls.answer_details[i][0].get(), bg = common_data.get_colour_from_name(window_controls.answer_colours[i][0].get()).colour_code, fg = common_data.get_colour_from_name(window_controls.answer_colours[i][1].get()).colour_code, font = window_design.main_font, wraplength = width - window_design.spacer)#, command = functools.partial(window_controls.select_answer, question_number, i))
             answer_button.place(x = x, y = y, width = width, height = large_height)
 
         return template_frame
@@ -1258,7 +1259,6 @@ class window_controls:
 
         colour_name_list.remove(window_design.correct_answer_colours[0].colour_name)
         colour_name_list.remove(window_design.incorrect_answer_colours[0].colour_name)
-        #colour_name_list.remove(window_design.double_wrong_answer_colours[0].colour_name)
 
         window_colours: list[colour] = window_controls.convert_to_colours(window_controls.current_user.window_colours)
         label_colours: list[colour] = window_controls.convert_to_colours(window_controls.current_user.label_colours)
@@ -1544,7 +1544,7 @@ class window_controls:
         if question_number == quiz_handler.quiz_length:
             window_controls.select_answer_button.configure(text = "End Quiz", command = window_controls.make_quiz_end_page)
 
-        if question_number != quiz_handler.question_number - 1:
+        if question_number != quiz_handler.question_number - 1 and quiz_handler.quiz_length > 2:
             window_controls.select_answer_button.place(x = (4 * window_design.spacer) + width, width = width)
 
             jump_to_current_question: Button = Button(window_controls.main_quiz_page, text = "Go To Current Question", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = functools.partial(window_controls.display_question_controller, quiz_handler.question_number))
@@ -1595,7 +1595,7 @@ class window_controls:
         window_controls.current_score_label = Label(template_frame, text = f"Current Score: {quiz_handler.current_score}", bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
         window_controls.current_score_label.place(x = (4 * window_design.spacer) + width, y = (2 * window_design.spacer), width = width, height = small_height)
 
-        question_text_label: Label = Label(template_frame, text = f"Question:\n{current_question.question_text}", bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
+        question_text_label: Label = Label(template_frame, text = f"Question:\n{current_question.question_text}", bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font, wraplength = (2 * width))
         question_text_label.place(x = (2 * window_design.spacer), y = (3 * window_design.spacer) + (1 * (window_design.spacer + small_height)), width = (2 * (window_design.spacer + width)), height = (2 * small_height))
 
         question_difficulty_label: Label = Label(template_frame, text = current_question.question_difficulty, bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
@@ -1636,7 +1636,7 @@ class window_controls:
                     x = col_2
                     y = row_2
             
-            answer_button: Button = Button(template_frame, text = answer_option.answer_text, bg = answer_colours[0].colour_code, fg = answer_colours[1].colour_code, font = window_design.main_font, command = functools.partial(window_controls.select_answer, question_number, i))
+            answer_button: Button = Button(template_frame, text = answer_option.answer_text, bg = answer_colours[0].colour_code, fg = answer_colours[1].colour_code, font = window_design.main_font, wraplength = width - window_design.spacer, command = functools.partial(window_controls.select_answer, question_number, i))
             answer_button.place(x = x, y = y, width = width, height = large_height)
 
             window_controls.answer_buttons.append(answer_button)
@@ -1747,14 +1747,13 @@ class window_controls:
         display_width: int = (2 * (window_design.spacer + width))
         display_height: int = (1 * window_design.spacer) + large_height
 
-        hint_fact_output: Label = Label(window_controls.main_quiz_page, text = popup_string, bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
+        hint_fact_output: Label = Label(window_controls.main_quiz_page, text = popup_string, bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font, wraplength = (2 * width))
         hint_fact_output.place(x = (2 * window_design.spacer), y = y_value, width = display_width, height = display_height)
 
         if question_number + 1 > quiz_handler.quiz_length:
             window_controls.select_answer_button.configure(text = "End Quiz", command = window_controls.make_quiz_end_page)
         else:
             window_controls.select_answer_button.configure(text = "Next Question", command = functools.partial(window_controls.display_question_controller, question_number + 1))
-
 
     def make_quiz_end_page() -> None:
         window_controls.main_quiz_page.destroy()
@@ -1810,8 +1809,11 @@ class window_controls:
             message_label.configure(text = "Well, that was interesting. Do that again.")
             end_quiz_button.configure(text = "Retake Quiz", command = window_controls.retake_quiz)
 
+        review_answers: Button = Button(window_controls.quiz_end_page, text = "Review Questions", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.review_controller)
+        review_answers.place(x = (2 * window_design.spacer), y = exit_button_y_value, width = (4 * window_design.spacer) + (2 * width), height = small_height)
+
         exit_button: Button = Button(window_controls.quiz_end_page, text = "Exit", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.kill_program)
-        exit_button.place(x = (2 * window_design.spacer), y = exit_button_y_value, width = (4 * window_design.spacer) + (2 * width), height = small_height)
+        exit_button.place(x = (2 * window_design.spacer), y = exit_button_y_value + (window_design.spacer + small_height), width = (4 * window_design.spacer) + (2 * width), height = small_height)
 
     def retake_quiz() -> None:
         window_controls.quiz_end_page.withdraw()
@@ -1825,10 +1827,70 @@ class window_controls:
     def update_user_details() -> None:
         window_controls.current_user.previous_scores.append(quiz_handler.current_score)
 
+        window_controls.current_user.average_score = window_controls.current_user.calculate_average_score()
+
+        if window_controls.view_account_page != None:
+            window_controls.average_score_label.configure(text = f"Average Score: {window_controls.current_user.average_score}")
+            window_controls.previous_scores_listbox.insert('end', f"{len(window_controls.current_user.previous_scores)}: {quiz_handler.current_score}")
+
         if quiz_handler.current_score > window_controls.current_user.high_score:
             window_controls.current_user.high_score = quiz_handler.current_score
 
         write_json_file(os.path.join(common_data.get_user_folder(), f"{window_controls.current_user.user_id}.json"), window_controls.current_user.make_dictionary())
+
+
+    # Post Quiz Review
+
+    def review_controller() -> None:
+        window_controls.quiz_end_page.withdraw()
+        window_controls.review_question(1)
+
+    def review_question(question_number: int) -> None:
+        if window_controls.main_quiz_page != None or window_controls.main_quiz_page.winfo_exists():
+            window_controls.main_quiz_page.destroy()
+
+        window_controls.main_quiz_page = window_controls.make_question_page_template(question_number)
+        window_controls.main_quiz_page.geometry(window_controls.calculate_view_question_dimensions())
+
+        window_controls.main_quiz_page.update()
+        window_controls.main_quiz_page.deiconify()
+        
+        button_colours: list[colour] = window_controls.convert_to_colours(window_controls.current_user.button_colours)
+        
+        width: int = window_design.get_question_page_width()
+        small_height: int = window_design.get_question_page_small_height()
+        large_height: int = window_design.get_question_page_large_height()
+
+        start_height: int = (4 * window_design.spacer) + (1 * (window_design.spacer + small_height)) + ((window_design.spacer + (2 * small_height))) + (2 * (window_design.spacer + large_height))
+
+        review_next_button: Button
+        review_last_button: Button
+        exit_review_button: Button
+        exit_app_button: Button
+
+        if question_number == 1:
+            review_next_button = Button(window_controls.main_quiz_page, text = "Next Question", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = functools.partial(window_controls.review_question, question_number + 1))
+            review_next_button.place(x = (2 * window_design.spacer), y = start_height, width = (2 * (window_design.spacer + width)), height = small_height)
+        elif question_number == quiz_handler.quiz_length:
+            review_last_button = Button(window_controls.main_quiz_page, text = "Last Question", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = functools.partial(window_controls.review_question, question_number -   1))
+            review_last_button.place(x = (2 * window_design.spacer), y = start_height, width = (2 * (window_design.spacer + width)), height = small_height)
+        else:
+            review_last_button = Button(window_controls.main_quiz_page, text = "Last Question", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = functools.partial(window_controls.review_question, question_number -   1))
+            review_last_button.place(x = (2 * window_design.spacer), y = start_height, width = width, height = small_height)
+            
+            review_next_button = Button(window_controls.main_quiz_page, text = "Next Question", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = functools.partial(window_controls.review_question, question_number + 1))
+            review_next_button.place(x = (4 * window_design.spacer) + width, y = start_height, width = width, height = small_height)
+            
+        exit_review_button = Button(window_controls.main_quiz_page, text = "Exit Review", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.exit_review)
+        exit_review_button.place(x = (2 * window_design.spacer), y = start_height + (window_design.spacer + small_height), width = width, height = small_height)
+        
+        exit_app_button = Button(window_controls.main_quiz_page, text = "Exit App", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.kill_program)
+        exit_app_button.place(x = (4 * window_design.spacer) + width, y = start_height + (window_design.spacer + small_height), width = width, height = small_height)
+
+    def exit_review() -> None:
+        window_controls.main_quiz_page.destroy()
+        window_controls.quiz_end_page.update()
+        window_controls.quiz_end_page.deiconify()
 
 
     # Clear Pages
@@ -1867,7 +1929,6 @@ class window_controls:
         window_controls.audio_listbox.selection_clear(0, 'end')
 
     def clear_question_selector() -> None:
-        #window_controls.question_listbox.delete(0, END)
         window_controls.delete_question.configure(text = "Discard Question")
 
     def clear_question_editor() -> None:
@@ -1886,6 +1947,10 @@ class window_controls:
         for answer_details_pair in window_controls.answer_details:
             answer_details_pair[0].delete(0, len(answer_details_pair[0].get()))
             answer_details_pair[1].configure(text = "Colour Preview", bg = window_colours[1].colour_code, fg = window_colours[0].colour_code)
+        
+        for question in window_controls.answer_colours:
+            question[0].set(window_colours[1].colour_name)
+            question[1].set(window_colours[0].colour_name)
 
         window_controls.create_question_button.configure(text = "Create Question", command = window_controls.create_question)
 
@@ -1984,7 +2049,7 @@ class window_controls:
 
     def calculate_end_quiz_dimensions() -> str:
         page_width: int = (8 * window_design.spacer) + (2 * window_design.get_quiz_over_width())
-        page_height: int = (3 * window_design.spacer) + (3 * (window_design.spacer + window_design.get_quiz_over_large_height())) + (2 * (window_design.spacer + window_design.get_quiz_over_small_height()))
+        page_height: int = (3 * window_design.spacer) + (3 * (window_design.spacer + window_design.get_quiz_over_large_height())) + (3 * (window_design.spacer + window_design.get_quiz_over_small_height()))
         
         return f"{page_width}x{page_height}"
 
@@ -2144,7 +2209,7 @@ class window_controls:
     def update_colour() -> None:
         if window_controls.valid_colour_details(window_controls.selected_colour):
             window_controls.update_user_colours()
-            window_controls.update_question_colours()
+            window_controls.update_question_colours(window_controls.selected_colour.colour_name, window_controls.colour_name.get())
             
             window_controls.selected_colour.colour_name = window_controls.colour_name.get()
             window_controls.selected_colour.colour_code = window_controls.colour_code.get()
@@ -2152,10 +2217,20 @@ class window_controls:
             window_controls.update_colour_file()
             window_controls.update_colour_list()
 
+            window_controls.update_frame(window_controls.colour_editor_page)
+            window_controls.update_frame(window_controls.user_account_page)
+
     def delete_colour() -> None:
+        window_controls.remove_user_colours()
+
         common_data.colour_list.remove(window_controls.selected_colour)
+
         window_controls.update_colour_file()
         window_controls.update_colour_list()
+        
+        window_controls.remove_question_colours()
+
+        window_controls.selected_colour = None
 
     def update_colour_file() -> None:
         write_string: str = ""
@@ -2234,14 +2309,13 @@ class window_controls:
 
     def update_audio() -> None:
         if window_controls.valid_audio_details(window_controls.selected_audio):
-            
+            window_controls.update_question_audios()
+
             window_controls.selected_audio.audio_name = window_controls.audio_name.get()
             window_controls.selected_audio.audio_file = window_controls.audio_file.get()
 
             window_controls.update_audio_file()
             window_controls.update_audio_list()
-
-            window_controls.update_question_audios()
 
             window_controls.selected_audio = None
 
@@ -2250,6 +2324,8 @@ class window_controls:
 
         window_controls.update_audio_file()
         window_controls.update_audio_list()
+
+        window_controls.remove_question_audios()
 
         window_controls.selected_audio = None
 
@@ -2374,7 +2450,7 @@ class window_controls:
             messagebox.showerror("Invalid Question Details", "Invalid Question Details Entered")
       
     def valid_question_details(exempt_question_text: str) -> bool:
-        valid_question: bool = window_controls.check_field(window_controls.enter_question_text.get(), 3, 80, False) and window_controls.unique_question_text(window_controls.enter_question_text.get(), exempt_question_text)
+        valid_question: bool = window_controls.check_field(window_controls.enter_question_text.get(), 3, 280, False) and window_controls.unique_question_text(window_controls.enter_question_text.get(), exempt_question_text)
         valid_difficulty: bool = window_controls.question_difficulty.get() in quiz_handler.difficulty_range
         valid_correct_answer: bool = int(window_controls.correct_answer.get()) in quiz_handler.correct_answers
         valid_answers: bool = window_controls.valid_answers(3)
@@ -2418,7 +2494,7 @@ class window_controls:
         valid_answer_ratio: bool = answer_ratio >= window_design.minimum_contrast_ratio
         valid_winans_ratio: bool = winans_ratio >= window_design.minimum_contrast_ratio
 
-        if valid_answer_text and valid_answer_ratio:# and valid_winans_ratio:
+        if valid_answer_text and valid_answer_ratio:
             return True
         else:
             messagebox.showerror("Invalid Answer Data", f"Answer {answer_index + 1} Details:\nAnswer Text: {valid_answer_text}\nAnswer Colour Ratio: {valid_answer_ratio}\n Valid Window Ratio: {valid_winans_ratio}")
@@ -2498,7 +2574,7 @@ class window_controls:
         
             write_json_file(os.path.join(common_data.get_user_folder(), f"{update_user.user_id}.json"), update_user.make_dictionary())
 
-    def remove_user_colour() -> None:
+    def remove_user_colours() -> None:
         for update_user in common_data.user_list:
             colour_dict: dict = update_user.get_colour_dictionary()
 
@@ -2512,18 +2588,24 @@ class window_controls:
         
             write_json_file(os.path.join(common_data.get_user_folder(), f"{update_user.user_id}.json"), update_user.make_dictionary())
 
-    def update_question_colours() -> None:
-        for update_question in common_data.usable_question_list:
-            answer_list: list[answer] = update_question.answer_options
+    def update_question_colours(old_colour_name: str, new_colour_name: str) -> None:
+        for i in range(len(common_data.usable_question_list)):
+            for j in range(len(common_data.usable_question_list[i].answer_options)):
+                for k in range(len(common_data.usable_question_list[i].answer_options[j].answer_colours)):
+                    if common_data.usable_question_list[i].answer_options[j].answer_colours[k] == old_colour_name:
+                        common_data.usable_question_list[i].answer_options[j].answer_colours[k] = new_colour_name
 
-            for answer_option in answer_list:
-                for answer_colour in answer_option.answer_colours:
-                    if answer_colour == window_controls.selected_colour.colour_name:
-                        answer_colour = window_controls.colour_name.get()
-            
-            write_json_file(os.path.join(common_data.get_usable_questions_folder(), f"{update_question.question_id}.json", update_question.make_dictionary()))
+            write_json_file(os.path.join(common_data.get_usable_questions_folder(), f"{common_data.usable_question_list[i].question_id}.json"), common_data.usable_question_list[i].make_dictionary())
 
-    def remove_question_colour() -> None:
+        for i in range(len(common_data.discarded_question_list)):
+            for j in range(len(common_data.discarded_question_list[i].answer_options)):
+                for k in range(len(common_data.discarded_question_list[i].answer_options[j].answer_colours)):
+                    if common_data.discarded_question_list[i].answer_options[j].answer_colours[k] == old_colour_name:
+                        common_data.discarded_question_list[i].answer_options[j].answer_colours[k] = new_colour_name
+
+            write_json_file(os.path.join(common_data.get_discarded_questions_folder(), f"{common_data.discarded_question_list[i].question_id}.json"), common_data.discarded_question_list[i].make_dictionary())
+
+    def remove_question_colours() -> None:
         for update_question in common_data.usable_question_list:
             answer_list: list[answer] = update_question.answer_options
 
@@ -2532,7 +2614,17 @@ class window_controls:
                     if answer_colour == window_controls.selected_colour.colour_name:
                         answer_colour = common_data.colour_list[0].colour_name
             
-            write_json_file(os.path.join(common_data.get_usable_questions_folder(), f"{update_question.question_id}.json", update_question.make_dictionary()))
+            write_json_file(os.path.join(common_data.get_usable_questions_folder(), f"{update_question.question_id}.json"), update_question.make_dictionary())
+
+        for update_question in common_data.discarded_question_list:
+            answer_list: list[answer] = update_question.answer_options
+
+            for answer_option in answer_list:
+                for answer_colour in answer_option.answer_colours:
+                    if answer_colour == window_controls.selected_colour.colour_name:
+                        answer_colour = common_data.colour_list[0].colour_name
+            
+            write_json_file(os.path.join(common_data.get_discarded_questions_folder(), f"{update_question.question_id}.json"), update_question.make_dictionary())
 
     def update_question_audios() -> None:
         for update_question in common_data.usable_question_list:
@@ -2542,7 +2634,7 @@ class window_controls:
             if update_question.incorrect_audio == window_controls.selected_audio.audio_name:
                 update_question.incorrect_audio = window_controls.audio_name.get()
             
-            write_json_file(os.path.join(common_data.get_usable_questions_folder(), f"{update_question.question_id}.json", update_question.make_dictionary()))
+            write_json_file(os.path.join(common_data.get_usable_questions_folder(), f"{update_question.question_id}.json"), update_question.make_dictionary())
 
         for update_question in common_data.discarded_question_list:
             if update_question.correct_audio == window_controls.selected_audio.audio_name:
@@ -2551,9 +2643,9 @@ class window_controls:
             if update_question.incorrect_audio == window_controls.selected_audio.audio_name:
                 update_question.incorrect_audio = window_controls.audio_name.get()
             
-            write_json_file(os.path.join(common_data.get_discarded_questions_folder(), f"{update_question.question_id}.json", update_question.make_dictionary()))
+            write_json_file(os.path.join(common_data.get_discarded_questions_folder(), f"{update_question.question_id}.json"), update_question.make_dictionary())
 
-    def remove_question_colours() -> None:
+    def remove_question_audios() -> None:
         for update_question in common_data.usable_question_list:
             if update_question.correct_audio == window_controls.selected_audio.audio_name:
                 update_question.correct_audio = window_controls.audio_name.get()
@@ -2561,7 +2653,7 @@ class window_controls:
             if update_question.incorrect_audio == window_controls.selected_audio.audio_name:
                 update_question.incorrect_audio = common_data.audio_list[0].audio_name
             
-            write_json_file(os.path.join(common_data.get_usable_questions_folder(), f"{update_question.question_id}.json", update_question.make_dictionary()))
+            write_json_file(os.path.join(common_data.get_usable_questions_folder(), f"{update_question.question_id}.json"), update_question.make_dictionary())
 
         for update_question in common_data.discarded_question_list:
             if update_question.correct_audio == window_controls.selected_audio.audio_name:
@@ -2570,7 +2662,7 @@ class window_controls:
             if update_question.incorrect_audio == window_controls.selected_audio.audio_name:
                 update_question.incorrect_audio = common_data.audio_list[0].audio_name
             
-            write_json_file(os.path.join(common_data.get_discarded_questions_folder(), f"{update_question.question_id}.json", update_question.make_dictionary()))
+            write_json_file(os.path.join(common_data.get_discarded_questions_folder(), f"{update_question.question_id}.json"), update_question.make_dictionary())
 
 
     # Go Back
@@ -2591,8 +2683,8 @@ class window_controls:
                 window_controls.clear_login_page()
             case "Create Account":
                 if window_controls.colour_selector_page != None and window_controls.colour_selector_page.winfo_exists():
-                    window_controls.colour_selector_page.withdraw()
-                window_controls.create_account_page.withdraw()
+                    window_controls.colour_selector_page.destroy()
+                window_controls.create_account_page.destroy()
             case "User Account":
                 window_controls.user_account_page.withdraw()
             case "View Account":
@@ -2614,18 +2706,27 @@ class window_controls:
 
     def destroy_frame(frame: str) -> None:
         match frame:
+            case "Login":
+                if window_controls.login_page != None and window_controls.login_page.winfo_exists():
+                    window_controls.login_page.destroy()
             case "User Account":
-                window_controls.user_account_page.destroy()
+                if window_controls.user_account_page != None and window_controls.user_account_page.winfo_exists():
+                    window_controls.user_account_page.destroy()
             case "View Account":
-                window_controls.view_account_page.destroy()
+                if window_controls.view_account_page != None and window_controls.view_account_page.winfo_exists():
+                    window_controls.view_account_page.destroy()
             case "Colour Editor":
-                window_controls.colour_editor_page.destroy()
+                if window_controls.colour_editor_page != None and window_controls.colour_editor_page.winfo_exists():
+                    window_controls.colour_editor_page.destroy()
             case "Audio Editor":
-                window_controls.audio_editor_page.destroy()
+                if window_controls.audio_editor_page != None and window_controls.audio_editor_page.winfo_exists():
+                    window_controls.audio_editor_page.destroy()
             case "Question Editor":
-                window_controls.question_list_page.destroy()
+                if window_controls.question_list_page != None and window_controls.question_list_page.winfo_exists():
+                    window_controls.question_list_page.destroy()
             case "Setup Quiz":
-                window_controls.setup_quiz_page.destroy()
+                if window_controls.setup_quiz_page != None and window_controls.setup_quiz_page.winfo_exists():
+                    window_controls.setup_quiz_page.destroy()
             case _:
                 pass
 
@@ -2681,13 +2782,14 @@ class window_controls:
         frame.configure(bg = window_colours[0].colour_code)
 
         for widget in frame.winfo_children():
-            match type(widget):
-                case "Label":
-                    widget.configure(bg = label_colours[0].colour_code, fg = label_colours[1].colour_code)
-                case "Button":
-                    widget.configure(bg = button_colours[0].colour_code, fg = button_colours[1].colour_code)
-                case "Entry":
-                    widget.configure(bg = entry_colours[0].colour_code, fg = entry_colours[1].colour_code)
+            if type(widget) == Label:
+                widget.configure(bg = label_colours[0].colour_code, fg = label_colours[1].colour_code)
+            elif type(widget) == Button:
+                widget.configure(bg = button_colours[0].colour_code, fg = button_colours[1].colour_code)
+            elif type(widget) == Entry:
+                widget.configure(bg = entry_colours[0].colour_code, fg = entry_colours[1].colour_code)
+
+        frame.update()
 
 
     # User Handling
@@ -2711,10 +2813,11 @@ class window_controls:
         window_controls.destroy_all_frames()
         window_controls.current_frame = "Login"
 
+        window_controls.frame_sequence.clear()
+
         window_controls.current_user = None
 
         window_controls.login_controller()
-        window_controls.clear_login_page()
 
     def valid_account_details(exempt_name: str) -> bool:
         new_username: str = window_controls.enter_username.get()
@@ -2785,6 +2888,9 @@ class window_controls:
             messagebox.showinfo("Account Updated", "User Details Successfully Updated")
 
     def generate_user_id() -> str:
+        if len(common_data.get_user_list()) == 0:
+            return f"U001"
+        
         user_list: list[user] = common_data.get_user_list()
         last_id: str = user_list[len(user_list) - 1].user_id
 

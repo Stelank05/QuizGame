@@ -1,3 +1,5 @@
+import math
+
 class user:
     def __init__(self, user_data) -> None:
         self.user_id: str = user_data["User ID Code"]
@@ -31,6 +33,8 @@ class user:
                 average += score
 
             average /= len(self.previous_scores)
+
+        average = math.trunc(average * 100) / 100
 
         return average
 

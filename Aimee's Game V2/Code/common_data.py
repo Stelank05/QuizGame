@@ -244,7 +244,7 @@ class common_data:
         for question_option in common_data.usable_question_list:
             write_string += f"{question_option.question_id}.json\n"
 
-        write_file(common_data.get_usable_question_file(), write_string)
+        write_file(common_data.get_usable_questions_file(), write_string)
 
     def sort_discarded_questions() -> None:
         swap: bool
@@ -271,4 +271,4 @@ class common_data:
         for question_option in common_data.discarded_question_list:
             write_string += f"{question_option.question_id}.json\n"
 
-        write_file(common_data.get_discarded_question_file(), write_string)
+        write_file(common_data.get_discarded_questions_file(), write_string)
