@@ -97,6 +97,11 @@ class window_controls:
     entry_colours_label: Label
 
 
+    # Main Page Data
+
+    user_high_score_label: Label
+
+
     # View Account Data
 
     high_score_label: Label
@@ -617,8 +622,8 @@ class window_controls:
         user_high_score_header: Label = Label(window_controls.user_account_page, text = "High Score", bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
         user_high_score_header.place(x = column_1, y = row_2, width = width, height = height)
 
-        user_high_score_label: Label = Label(window_controls.user_account_page, text = window_controls.current_user.high_score, bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
-        user_high_score_label.place(x = column_2, y = row_2, width = width, height = height)
+        window_controls.user_high_score_label = Label(window_controls.user_account_page, text = window_controls.current_user.high_score, bg = label_colours[0].colour_code, fg = label_colours[1].colour_code, font = window_design.main_font)
+        window_controls.user_high_score_label.place(x = column_2, y = row_2, width = width, height = height)
 
         play_quiz_button: Button = Button(window_controls.user_account_page, text = "Play Quiz", bg = button_colours[0].colour_code, fg = button_colours[1].colour_code, font = window_design.main_font, command = window_controls.setup_quiz_controller)
         play_quiz_button.place(x = column_1, y = row_3, width = 2 * (width + window_design.spacer), height = height)
@@ -980,7 +985,7 @@ class window_controls:
                     window_controls.make_create_question_page()
                 else:
                     window_controls.clear_question_editor()
-                    window_controls.load_question_list(window_controls.selected_question_list)  
+                    #window_controls.load_question_list(window_controls.selected_question_list)  
                     window_controls.create_question_page.update()
                     window_controls.create_question_page.deiconify()
 
@@ -1835,6 +1840,7 @@ class window_controls:
 
         if quiz_handler.current_score > window_controls.current_user.high_score:
             window_controls.current_user.high_score = quiz_handler.current_score
+            window_controls.user_high_score_label.configure(text = window_controls.current_user.high_score)
 
         write_json_file(os.path.join(common_data.get_user_folder(), f"{window_controls.current_user.user_id}.json"), window_controls.current_user.make_dictionary())
 
@@ -1949,8 +1955,8 @@ class window_controls:
             answer_details_pair[1].configure(text = "Colour Preview", bg = window_colours[1].colour_code, fg = window_colours[0].colour_code)
         
         for question in window_controls.answer_colours:
-            question[0].set(window_colours[1].colour_name)
-            question[1].set(window_colours[0].colour_name)
+            question[0].set("")
+            question[1].set("")
 
         window_controls.create_question_button.configure(text = "Create Question", command = window_controls.create_question)
 
@@ -2450,7 +2456,7 @@ class window_controls:
             messagebox.showerror("Invalid Question Details", "Invalid Question Details Entered")
       
     def valid_question_details(exempt_question_text: str) -> bool:
-        valid_question: bool = window_controls.check_field(window_controls.enter_question_text.get(), 3, 280, False) and window_controls.unique_question_text(window_controls.enter_question_text.get(), exempt_question_text)
+        valid_question: bool = window_controls.unique_question_text(window_controls.enter_question_text.get(), exempt_question_text) #and window_controls.check_field(window_controls.enter_question_text.get(), 3, 280, False)
         valid_difficulty: bool = window_controls.question_difficulty.get() in quiz_handler.difficulty_range
         valid_correct_answer: bool = int(window_controls.correct_answer.get()) in quiz_handler.correct_answers
         valid_answers: bool = window_controls.valid_answers(3)

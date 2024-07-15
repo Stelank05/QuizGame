@@ -169,7 +169,6 @@ class common_data:
             if colour_option.colour_name == colour_name:
                 return colour_option
 
-        print(f"NULL COLOUR - Name: {colour_name}")
         return colour("NULL COLOUR", "#FFFFFF")    
 
     def get_colour_from_code(colour_code: str) -> colour:
@@ -177,7 +176,6 @@ class common_data:
             if colour_option.colour_code == colour_code:
                 return colour_option
 
-        print(f"NULL COLOUR - Code: {colour_code}")
         return colour("NULL COLOUR", "#FFFFFF")    
 
 
